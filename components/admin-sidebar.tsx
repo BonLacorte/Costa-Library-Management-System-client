@@ -1,0 +1,69 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { BookMarked, UserCircle, LayoutDashboard, Library, Receipt, Settings, LogOut, ArrowLeftRight, Shapes, Bookmark, Users, Crown, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const NAV_ITEMS = [
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Books", href: "/admin/books", icon: Library },
+  { name: "Book Loans", href: "/admin/loans", icon: ArrowLeftRight },
+  { name: "Fines", href: "/admin/fines", icon: Receipt },
+  { name: "Genres", href: "/admin/genres", icon: Shapes },
+  { name: "Reservations", href: "/admin/reservations", icon: Bookmark },
+  { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Subscription Plans", href: "/admin/subscription-plans", icon: Crown },
+  { name: "User Subscriptions", href: "/admin/user-subscriptions", icon: ShieldCheck },
+];
+
+export function AdminSidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("jwt");
+    localStorage.removeItem("user");
+    router.push("/admin-sign-in");
+  };
+
+  return (
+    <aside className="w-64 fixed inset-y-0 left-0 bg-surface-container-low flex flex-col justify-between hidden lg:flex shadow-none border-r-0 z-50">
+      <div className="p-8">
+        <div className="flex items-center gap-3 mb-10 px-2">
+          <div className="size-8 rounded-full bg-primary flex items-center justify-center shadow-[var(--shadow-ambient)]">
+            <BookMarked className="text-on-primary size-4" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-serif text-lg font-medium tracking-tight text-primary-container leading-none">Costa</span>
+            <span className="text-[10px] uppercase tracking-wider text-outline font-semibold mt-1">Admin Panel</span>
+          </div>
+        </div>
+        
+        <nav className="flex flex-col gap-1">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            // Exact match for Dashboard so "/admin" doesn't match everything under /admin
+            const isActive = item.href === "/admin" ? pathname === item.href : pathname.startsWith(item.href);
+            return (
+              <Link key={item.name} href={item.href} className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-colors",
+                isActive 
+                  ? "bg-surface-container-highest text-primary shadow-none" 
+                  : "text-on-surface-variant hover:bg-surface-container-highest hover:text-primary"
+              )}>
+                <Icon className="size-[18px]" /> {item.name}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      <div className="p-8 pb-10 space-y-1">
+        <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium text-on-surface-variant hover:bg-surface-container-highest hover:text-primary transition-colors"><UserCircle className="size-[18px]" /> User View</Link>
+        <Link href="/admin/settings" className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium text-on-surface-variant hover:bg-surface-container-highest hover:text-primary transition-colors"><Settings className="size-[18px]" /> Settings</Link>
+        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium text-error hover:bg-error-container transition-colors"><LogOut className="size-[18px]" /> Logout</button>
+      </div>
+    </aside>
+  );
+}

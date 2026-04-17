@@ -1,0 +1,56 @@
+# Implementation Plan: Admin Architecture & Scaffolding
+
+This phase introduces the **Admin** role into the framework. Because the Admin area requires a completely different Sidebar (with "Books Management", "Fines Management") than the User area, we need to adjust our layout strategy.
+
+## User Review Required
+
+> [!IMPORTANT]
+> To support two distinct sidebars without building complex "if/else" logic in a single file, I am proposing we use **Next.js Route Groups** (`(user)` and `(admin)`). 
+> 
+> *This means I will move all the current routes (`app/page.tsx`, `app/loans`, etc.) into `app/(user)/` and create a new environment under `app/(admin)/`. The user URL paths will NOT change (it's still `/loans`), but the admin URLs will live at `/admin/loans` etc.*
+
+## Proposed Changes
+
+### 1. Route Group Restructuring (Next.js Best Practice)
+#### [NEW] `app/(user)/layout.tsx`
+- The current `app/layout.tsx` logic (incorporating the User Sidebar) will be moved here.
+
+#### [NEW] `app/(admin)/layout.tsx`
+- A unique layout strictly for the `/admin` routes.
+- Will mount a brand new `components/admin-sidebar.tsx`.
+
+#### [MODIFY] `app/` Directory
+- All current folders (`books`, `fines`, `loans`, `profile`, `reservations`, `settings`, `subscription`, `wishlist`, `page.tsx`) will be safely moved inside `app/(user)/`.
+
+### 2. Admin Sidebar Component
+#### [NEW] `components/admin-sidebar.tsx`
+- Replicates the persistent glassmorphism 'No-Line' aesthetic of the user sidebar.
+- Contains links:
+  - Dashboard (`/admin`)
+  - Books Mgt (`/admin/books`)
+  - Book Loans Mgt (`/admin/loans`)
+  - Fines Mgt (`/admin/fines`)
+  - Bottom actions: Profile, Settings, Logout.
+
+### 3. Admin Page Scaffolding
+#### [NEW] `app/(admin)/admin/page.tsx` (Admin Dashboard)
+- Overview metrics: Total Active Users, Total Books, Overdue Revenue.
+
+#### [NEW] `app/(admin)/admin/books/page.tsx` (Books Management)
+- ShadCN Table detailing physical/digital inventory, add/edit book actions, stock numbers.
+
+#### [NEW] `app/(admin)/admin/loans/page.tsx` (Book Loans Management)
+- Table/Grid managing active checkouts, overdue status forced resolutions.
+
+#### [NEW] `app/(admin)/admin/fines/page.tsx` (Fines Management)
+- Global ledger of all user fines, waiving abilities.
+
+## Open Questions
+
+> [!NOTE]
+> Are you comfortable utilizing the formal Next.js Route Group feature `(user)` / `(admin)` to separate these layouts cleanly? 
+
+## Verification Plan
+- `npm run dev` hot-recompiles seamlessly.
+- Navigating to `http://localhost:3000/` shows the User Sidebar.
+- Navigating to `http://localhost:3000/admin` shows the Admin Sidebar.
