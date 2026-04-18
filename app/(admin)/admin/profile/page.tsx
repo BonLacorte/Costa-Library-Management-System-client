@@ -3,17 +3,17 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { UserCircle, CheckCircle2, Pencil, X } from "lucide-react";
+import { UserCircle, CheckCircle2, Pencil, X, ShieldCheck } from "lucide-react";
 
-interface UserProfile {
+interface AdminProfile {
   id: number;
   fullName: string;
   email: string;
   phone: string;
 }
 
-export default function Profile() {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+export default function AdminProfile() {
+  const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editMode, setEditMode] = useState(false);
@@ -29,24 +29,20 @@ export default function Profile() {
         setLoading(false);
         return;
       }
-
       try {
         const response = await fetch("http://localhost:8080/api/users/profile", {
           headers: { "Authorization": `Bearer ${token}` }
         });
-
         if (!response.ok) throw new Error(`Server returned ${response.status}.`);
-
-        const data: UserProfile = await response.json();
+        const data: AdminProfile = await response.json();
         setProfile(data);
         setFormData({ id: data.id, fullName: data.fullName, email: data.email, phone: data.phone || "" });
       } catch (err: any) {
-        setError(err.message || "Failed to load profile from server.");
+        setError(err.message || "Failed to load profile.");
       } finally {
         setLoading(false);
       }
     };
-
     fetchProfile();
   }, []);
 
@@ -59,7 +55,6 @@ export default function Profile() {
     setSaving(true);
     setSuccess(false);
     setError("");
-
     try {
       const response = await fetch("http://localhost:8080/api/users/profile", {
         method: "PUT",
@@ -69,9 +64,8 @@ export default function Profile() {
         },
         body: JSON.stringify(formData)
       });
-
       if (response.ok) {
-        const updated: UserProfile = await response.json();
+        const updated: AdminProfile = await response.json();
         setProfile(updated);
         setFormData({ id: updated.id, fullName: updated.fullName, email: updated.email, phone: updated.phone || "" });
         setSuccess(true);
@@ -98,8 +92,12 @@ export default function Profile() {
   return (
     <div className="p-6 lg:p-12 pb-20 max-w-[800px] w-full animate-in fade-in duration-500">
       <header className="mb-12">
+        <div className="flex items-center gap-3 mb-3">
+          <ShieldCheck className="size-5 text-primary" />
+          <span className="text-xs font-semibold uppercase tracking-widest text-primary">Admin Account</span>
+        </div>
         <h1 className="font-serif text-4xl font-medium tracking-tight text-on-surface mb-2">Your Profile</h1>
-        <p className="text-on-surface-variant">Update your public identity and library credentials.</p>
+        <p className="text-on-surface-variant">Manage your administrator identity and contact details.</p>
       </header>
 
       {success && (
@@ -116,20 +114,27 @@ export default function Profile() {
       )}
 
       <div className="bg-surface-container-low rounded-3xl p-8 lg:p-12 shadow-none border-0">
+        {/* Avatar + name header */}
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-6">
-            <div className="size-20 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0">
-              <UserCircle className="size-10 text-outline" />
+            <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center shrink-0 ring-2 ring-primary/20">
+              <UserCircle className="size-10 text-primary" />
             </div>
             <div>
               {loading ? (
-                <div className="h-6 w-40 bg-surface-container-highest rounded-lg animate-pulse mb-2" />
+                <div className="space-y-2">
+                  <div className="h-6 w-44 bg-surface-container-highest rounded-lg animate-pulse" />
+                  <div className="h-4 w-32 bg-surface-container-highest rounded-lg animate-pulse" />
+                </div>
               ) : (
-                <p className="font-serif text-2xl font-medium text-on-surface">{profile?.fullName || "—"}</p>
+                <>
+                  <p className="font-serif text-2xl font-medium text-on-surface">{profile?.fullName || "—"}</p>
+                  <p className="text-sm text-on-surface-variant mt-0.5">{profile?.email || ""}</p>
+                </>
               )}
-              <p className="text-sm text-on-surface-variant">{profile?.email || ""}</p>
             </div>
           </div>
+
           {!loading && !editMode && (
             <Button
               variant="outline"
@@ -150,6 +155,7 @@ export default function Profile() {
           )}
         </div>
 
+        {/* View or Edit mode */}
         {editMode ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
@@ -162,7 +168,6 @@ export default function Profile() {
                 className="bg-surface-container-lowest focus-visible:bg-surface-container-lowest shadow-none py-6 rounded-2xl"
               />
             </div>
-
             <div className="space-y-3">
               <label className="text-sm font-medium text-on-surface-variant pl-1">Email Address</label>
               <Input
@@ -174,7 +179,6 @@ export default function Profile() {
                 className="bg-surface-container-lowest focus-visible:bg-surface-container-lowest shadow-none py-6 rounded-2xl"
               />
             </div>
-
             <div className="space-y-3">
               <label className="text-sm font-medium text-on-surface-variant pl-1">Phone Number</label>
               <Input
@@ -185,21 +189,26 @@ export default function Profile() {
                 className="bg-surface-container-lowest focus-visible:bg-surface-container-lowest shadow-none py-6 rounded-2xl"
               />
             </div>
-
             <div className="pt-8 border-t border-outline-variant/20 flex gap-4">
               <Button type="submit" disabled={saving} className="rounded-full px-8 shadow-none shadow-[var(--shadow-ambient)]">
                 {saving ? "Saving..." : "Save Changes"}
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="rounded-full px-8 shadow-none bg-transparent border-outline-variant/30 text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+              >
+                Cancel
+              </Button>
             </div>
           </form>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {loading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-14 bg-surface-container-highest rounded-2xl animate-pulse" />
-                ))}
-              </div>
+              [1, 2, 3].map(i => (
+                <div key={i} className="h-16 bg-surface-container-highest rounded-2xl animate-pulse" />
+              ))
             ) : (
               <>
                 <div className="bg-surface-container-lowest rounded-2xl px-5 py-4">

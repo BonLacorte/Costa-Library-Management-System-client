@@ -39,7 +39,7 @@ export function AdminSidebar() {
             <span className="text-[10px] uppercase tracking-wider text-outline font-semibold mt-1">Admin Panel</span>
           </div>
         </div>
-        
+
         <nav className="flex flex-col gap-1">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -48,8 +48,8 @@ export function AdminSidebar() {
             return (
               <Link key={item.name} href={item.href} className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-colors",
-                isActive 
-                  ? "bg-surface-container-highest text-primary shadow-none" 
+                isActive
+                  ? "bg-surface-container-highest text-primary shadow-none"
                   : "text-on-surface-variant hover:bg-surface-container-highest hover:text-primary"
               )}>
                 <Icon className="size-[18px]" /> {item.name}
@@ -60,7 +60,7 @@ export function AdminSidebar() {
       </div>
 
       <div className="p-8 pb-10 space-y-1">
-        <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium text-on-surface-variant hover:bg-surface-container-highest hover:text-primary transition-colors"><UserCircle className="size-[18px]" /> User View</Link>
+        <Link href="/admin/profile" className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium text-on-surface-variant hover:bg-surface-container-highest hover:text-primary transition-colors"><UserCircle className="size-[18px]" /> Profile</Link>
         <Link href="/admin/settings" className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium text-on-surface-variant hover:bg-surface-container-highest hover:text-primary transition-colors"><Settings className="size-[18px]" /> Settings</Link>
         <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium text-error hover:bg-error-container transition-colors"><LogOut className="size-[18px]" /> Logout</button>
       </div>
