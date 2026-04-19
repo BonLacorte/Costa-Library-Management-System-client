@@ -105,11 +105,10 @@ export default function AdminBooks() {
           {/* Availability toggle styled as select */}
           <button
             onClick={() => { setAvailableOnly(!availableOnly); setPage(0); }}
-            className={`flex items-center gap-2 px-4 h-10 rounded-lg border text-sm font-medium transition-colors min-w-[130px] justify-between ${
-              availableOnly
+            className={`flex items-center gap-2 px-4 h-10 rounded-lg border text-sm font-medium transition-colors min-w-[130px] justify-between ${availableOnly
                 ? "bg-primary text-on-primary border-primary"
                 : "bg-surface-container-lowest border-outline-variant/30 text-on-surface-variant hover:border-outline-variant/60"
-            }`}
+              }`}
           >
             <span>{availableOnly ? "Available Only" : "Availability"}</span>
             <ChevronRight className="size-3.5 rotate-90 opacity-60" />
@@ -219,9 +218,8 @@ export default function AdminBooks() {
 
                       {/* Available — colored circle badge */}
                       <TableCell className="py-3 text-center">
-                        <span className={`inline-flex items-center justify-center size-8 rounded-full text-sm font-bold text-white shadow-sm ${
-                          item.availableCopies > 0 ? "bg-[#22c55e]" : "bg-[#ef4444]"
-                        }`}>
+                        <span className={`inline-flex items-center justify-center size-8 rounded-full text-sm font-bold text-white shadow-sm ${item.availableCopies > 0 ? "bg-[#22c55e]" : "bg-[#ef4444]"
+                          }`}>
                           {item.availableCopies}
                         </span>
                       </TableCell>

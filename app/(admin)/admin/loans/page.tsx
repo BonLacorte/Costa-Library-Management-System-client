@@ -50,15 +50,6 @@ interface SearchBody {
   sortDirection: string;
 }
 
-interface Stats {
-  totalCheckouts: number;
-  activeCheckouts: number;
-  overdueCheckouts: number;
-  totalReturns: number;
-  totalUnpaidFines: number | null;
-  transactionsWithFines: number;
-}
-
 const STATUS_STYLES: Record<string, string> = {
   CHECKED_OUT: "bg-[#22c55e] text-white",
   RETURNED:    "bg-surface-container-high text-on-surface-variant",
@@ -82,7 +73,6 @@ export default function AdminLoans() {
   const [error, setError] = useState("");
   const [hasMore, setHasMore] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [statsData, setStatsData] = useState<Stats | null>(null);
 
   // Search body state — matches API schema exactly
   const [search, setSearch] = useState<SearchBody>({
@@ -97,23 +87,13 @@ export default function AdminLoans() {
     sortDirection: "DESC",
   });
 
-  // Fetch real statistics from the dedicated endpoint
-  useEffect(() => {
-    const fetchStats = async () => {
-      const token = localStorage.getItem("jwt");
-      if (!token) return;
-      try {
-        const res = await fetch("http://localhost:8080/api/book-loans/statistics", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data: Stats = await res.json();
-          setStatsData(data);
-        }
-      } catch { /* stats are non-critical, fail silently */ }
-    };
-    fetchStats();
-  }, []);
+  // Derived stats from current page
+  const stats = {
+    active: loans.filter(l => l.status === "CHECKED_OUT").length,
+    overdue: loans.filter(l => l.isOverdue).length,
+    returned: loans.filter(l => l.status === "RETURNED").length,
+    fines: loans.reduce((sum, l) => sum + (l.fineAmount || 0), 0),
+  };
 
   const fetchLoans = useCallback(async () => {
     setLoading(true);
@@ -176,44 +156,17 @@ export default function AdminLoans() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          {
-            label: "Active Loans",
-            value: statsData ? statsData.activeCheckouts : null,
-            color: "text-[#22c55e]",
-            icon: CheckCircle2,
-          },
-          {
-            label: "Overdue Loans",
-            value: statsData ? statsData.overdueCheckouts : null,
-            color: "text-error",
-            icon: AlertTriangle,
-          },
-          {
-            label: "Returned",
-            value: statsData ? statsData.totalReturns : null,
-            color: "text-primary",
-            icon: RotateCcw,
-          },
-          {
-            label: "Total Fines",
-            value: statsData
-              ? `$${(statsData.totalUnpaidFines ?? 0).toFixed(2)}`
-              : null,
-            color: "text-amber-500",
-            icon: DollarSign,
-          },
+          { label: "Active Loans", value: stats.active, color: "text-[#22c55e]", icon: CheckCircle2 },
+          { label: "Overdue Loans", value: stats.overdue, color: "text-error", icon: AlertTriangle },
+          { label: "Returned", value: stats.returned, color: "text-primary", icon: RotateCcw },
+          { label: "Total Fines", value: `$${stats.fines.toFixed(2)}`, color: "text-amber-500", icon: DollarSign },
         ].map(s => (
           <div key={s.label} className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0">
-            {s.value === null ? (
-              <div className="h-9 w-16 bg-surface-container-highest rounded-lg animate-pulse mb-1" />
-            ) : (
-              <p className={`text-3xl font-bold mb-1 ${s.color}`}>{s.value}</p>
-            )}
+            <p className={`text-3xl font-bold mb-1 ${s.color}`}>{s.value}</p>
             <p className="text-sm text-on-surface-variant font-medium">{s.label}</p>
           </div>
         ))}
       </div>
-
 
       {/* Controls: Sort + Filters toggle */}
       <div className="flex flex-wrap items-center justify-end gap-3 mb-4">

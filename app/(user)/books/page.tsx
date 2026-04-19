@@ -1,109 +1,420 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Search, Filter, BookMarked } from "lucide-react";
+"use client";
 
-export default function LibraryCatalog() {
-  const books = [
-    { id: 1, title: "The Architecture of Happiness", author: "Alain de Botton", year: "2006", isbn: "978-0375424460", status: "Available", cover: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=800&auto=format&fit=crop" },
-    { id: 2, title: "Design as Art", author: "Bruno Munari", year: "1971", isbn: "978-0141035819", status: "Checked Out", cover: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=800&auto=format&fit=crop" },
-    { id: 3, title: "Interaction of Color", author: "Josef Albers", year: "1963", isbn: "978-0300179354", status: "Available", cover: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=800&auto=format&fit=crop" },
-    { id: 4, title: "Thinking with Type", author: "Ellen Lupton", year: "2004", isbn: "978-1568989693", status: "Reserved", cover: "https://images.unsplash.com/photo-1618666012174-83b441c0bc76?q=80&w=800&auto=format&fit=crop" },
-    { id: 5, title: "Grid Systems", author: "Josef Müller-Brockmann", year: "1981", isbn: "978-3721201451", status: "Available", cover: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=800&auto=format&fit=crop" },
-    { id: 6, title: "The Visual Display of Quantitative Information", author: "Edward Tufte", year: "1983", isbn: "978-0961392147", status: "Available", cover: "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=800&auto=format&fit=crop" }
-  ];
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { Search, User, XCircle, CheckCircle2, ChevronLeft, ChevronRight, Loader2, BookOpen } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+interface Book {
+  id: number;
+  title: string;
+  author: string;
+  isbn: string;
+  genreName?: string;
+  genreId?: number;
+  totalCopies: number;
+  availableCopies: number;
+  status?: string;
+  description?: string;
+  coverImageUrl?: string;
+}
+
+interface Genre {
+  id: number;
+  name: string;
+}
+
+export default function UserBrowseBooks() {
+  const router = useRouter();
+
+  // Data States
+  const [books, setBooks] = useState<Book[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [hasMore, setHasMore] = useState(false);
+
+  // Filter States
+  const [page, setPage] = useState(0);
+  const [size] = useState(20);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGenreId, setSelectedGenreId] = useState<number | "all">("all");
+  const [availableOnly, setAvailableOnly] = useState<boolean>(false);
+  const [sortBy, setSortBy] = useState("newest");
+
+  // Dedicated ISBN Search State
+  const [isbnSearch, setIsbnSearch] = useState("");
+  const [isbnSearching, setIsbnSearching] = useState(false);
+
+  const fetchBooks = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams();
+      params.append("page", page.toString());
+      params.append("size", size.toString());
+      if (searchTerm) params.append("searchTerm", searchTerm);
+      if (selectedGenreId !== "all") params.append("genreId", selectedGenreId.toString());
+      const token = localStorage.getItem("jwt");
+      if (!token) throw new Error("Please log in first.");
+
+      const response = await fetch(`http://localhost:8080/api/books?${params.toString()}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error(`Server returned ${response.status}.`);
+      const data = await response.json();
+      const content = data.content || [];
+      setBooks(content);
+      setHasMore(content.length === size);
+    } catch (err: any) {
+      setError(err.message || "Failed to load books.");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, size, searchTerm, selectedGenreId, availableOnly]);
+
+  const fetchGenres = async () => {
+    try {
+      const token = localStorage.getItem("jwt");
+      const response = await fetch("http://localhost:8080/api/genres/active", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      setGenres(data.content || data || []);
+    } catch (err) {
+      console.error("Failed to load genres:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchGenres();
+  }, []);
+
+  useEffect(() => {
+    fetchBooks();
+  }, [fetchBooks]);
+
+  const handleIsbnSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isbnSearch.trim()) return;
+    setIsbnSearching(true);
+    setError("");
+    try {
+      const token = localStorage.getItem("jwt");
+      const response = await fetch(`http://localhost:8080/api/books/isbn/${isbnSearch.trim()}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (response.status === 404) {
+        throw new Error("No book found with that ISBN.");
+      }
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}.`);
+      }
+      const data: Book = await response.json();
+      router.push(`/books/${data.id}`);
+    } catch (err: any) {
+      setError(err.message || "Failed to search by ISBN.");
+      setIsbnSearching(false); // only stop loading if it failed, else we're redirecting
+    }
+  };
+
+  // Helper to determine status based on payload if backend doesn't provide a 'status' string
+  const getStatus = (book: Book) => {
+    if (book.status) return book.status;
+    return book.availableCopies > 0 ? "Available" : "No copies left";
+  };
 
   return (
-    <div className="p-6 lg:p-12 pb-20 w-full animate-in fade-in duration-500">
-      <header className="lg:hidden flex items-center justify-between mb-8 pb-4 border-b border-outline-variant/20">
-          <div className="flex items-center gap-2">
-          <div className="size-8 rounded-full bg-primary flex items-center justify-center">
-            <BookMarked className="text-on-primary size-4" />
-          </div>
-          <span className="font-serif text-xl font-medium text-primary-container">Costa</span>
+    <div className="min-h-screen bg-[#f8f9fc] w-full animate-in fade-in duration-500">
+
+      {/* Page Header */}
+      <div className="bg-white pt-10 pb-10 border-b border-outline-variant/10 mb-8">
+        <div className="max-w-[1400px] mx-auto px-6 text-center">
+          <h1 className="text-4xl font-bold tracking-tight text-on-surface mb-3">
+            Browse Our <span className="text-primary">Collection</span>
+          </h1>
+          <p className="text-on-surface-variant text-base">
+            Discover thousands of books across all genres
+          </p>
         </div>
-      </header>
+      </div>
 
-      <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-[1fr_3fr] gap-8 xl:gap-12 w-full">
-        <aside className="space-y-8">
-          <div>
-            <h1 className="font-serif text-4xl xl:text-5xl font-medium leading-tight text-on-surface tracking-tight mb-4">
-              Explore<br />
-              <span className="text-primary">The Curated</span><br />
-              Collection.
-            </h1>
-            <p className="text-on-surface-variant text-sm xl:text-base leading-relaxed mt-4 max-w-sm">
-              Discover profound literature across design, architecture, and the human condition.
-            </p>
+      <div className="max-w-[1400px] mx-auto px-6 pb-20">
+
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 rounded-xl bg-error-container text-error text-sm font-medium">
+            {error}
           </div>
+        )}
 
-          <div className="bg-surface-container-low rounded-2xl p-6 shadow-none max-w-sm">
-            <div className="flex items-center gap-3 mb-6 flex-wrap">
-              <span className="text-xs font-semibold tracking-wider uppercase text-outline w-full mb-2">Filters</span>
-              <Badge variant="secondary" className="bg-secondary-container text-on-secondary-container hover:bg-secondary-container rounded-full px-4 py-1.5 text-[0.8rem] border-0 shadow-none">All Books</Badge>
-              <Badge variant="outline" className="border-outline-variant/30 text-on-surface hover:bg-surface-container-highest rounded-full px-4 py-1.5 text-[0.8rem] bg-transparent border">Architecture</Badge>
-              <Badge variant="outline" className="border-outline-variant/30 text-on-surface hover:bg-surface-container-highest rounded-full px-4 py-1.5 text-[0.8rem] bg-transparent border">Typography</Badge>
+        <div className="flex flex-col lg:flex-row gap-6">
+
+          {/* Left Sidebar (Filters) */}
+          <aside className="w-full lg:w-[280px] shrink-0 space-y-6">
+
+            {/* Genres Card */}
+            <div className="bg-white rounded-xl border border-outline-variant/20 p-5 shadow-sm">
+              <h3 className="font-bold text-lg text-on-surface mb-4">Genres</h3>
+
+              <div className="relative pl-1 pr-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+                <div className="absolute right-1 top-1 bottom-1 w-1 bg-surface-container rounded-full overflow-hidden">
+                  <div className="h-20 bg-primary w-full rounded-full absolute top-10"></div>
+                </div>
+
+                <div className="space-y-1">
+                  <button
+                    onClick={() => { setSelectedGenreId("all"); setPage(0); }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${selectedGenreId === "all"
+                        ? "bg-[#f3e8ff] text-primary"
+                        : "text-on-surface-variant hover:bg-surface-container-lowest"
+                      }`}
+                  >
+                    <div className={`size-4 rounded-full border-[4px] flex items-center justify-center shrink-0 ${selectedGenreId === "all"
+                        ? "border-primary bg-white"
+                        : "border-outline-variant/50 bg-transparent"
+                      }`} />
+                    All Genres
+                  </button>
+
+                  {genres.map(genre => (
+                    <button
+                      key={genre.id}
+                      onClick={() => { setSelectedGenreId(genre.id); setPage(0); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${selectedGenreId === genre.id
+                          ? "bg-[#f3e8ff] text-primary"
+                          : "text-on-surface-variant hover:bg-surface-container-lowest"
+                        }`}
+                    >
+                      <div className={`size-4 rounded-full border-[4px] flex items-center justify-center shrink-0 ${selectedGenreId === genre.id
+                          ? "border-primary bg-white"
+                          : "border-outline-variant/50 bg-transparent"
+                        }`} />
+                      <span className="truncate">{genre.name}</span>
+                    </button>
+                  ))}
+
+                  {/* Fallback if genres list is empty */}
+                  {genres.length === 0 && !loading && (
+                    <div className="px-3 py-2 text-xs text-on-surface-variant italic">No genres found in database.</div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </aside>
 
-        <section className="bg-surface-container-low rounded-3xl p-8 lg:p-12 min-h-[800px]">
-          <div className="flex flex-col sm:flex-row items-center gap-4 mb-10 w-full max-w-2xl">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-outline" />
-              <Input 
-                placeholder="Search by title, author, or ISBN..." 
-                className="pl-12 w-full text-lg placeholder:text-outline-variant bg-transparent sm:bg-surface-container-lowest shadow-none focus-visible:border-b-primary focus-visible:bg-surface-container-lowest"
-              />
+            {/* Availability Card */}
+            <div className="bg-white rounded-xl border border-outline-variant/20 p-5 shadow-sm">
+              <h3 className="font-bold text-lg text-on-surface mb-4">Availability</h3>
+              <select
+                value={availableOnly ? "available" : "all"}
+                onChange={(e) => { setAvailableOnly(e.target.value === "available"); setPage(0); }}
+                className="w-full h-11 px-4 rounded-lg border-2 border-primary/20 text-on-surface text-sm font-medium focus:outline-none focus:border-primary transition-colors appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%237c3aed%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:calc(100%-1rem)_center] bg-[length:0.6rem]"
+              >
+                <option value="all">All Books</option>
+                <option value="available">Available Only</option>
+              </select>
             </div>
-            <Button variant="secondary" className="rounded-full gap-2 shrink-0 h-10 px-6 bg-surface-container-highest">
-              <Filter className="size-4" />
-              Filters
-            </Button>
-          </div>
 
-          <div className="flex items-center justify-between mb-8">
-            <span className="text-sm font-medium text-on-surface-variant">Showing {books.length} curated works</span>
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-outline">Sort by:</span>
-              <button className="font-medium text-primary border-b border-primary pb-0.5 hover:text-primary-container transition-colors">Recently Added</button>
+            {/* Direct ISBN Search Card */}
+            <div className="bg-white rounded-xl border border-outline-variant/20 p-5 shadow-sm">
+              <h3 className="font-bold text-lg text-on-surface mb-2 flex items-center gap-2">
+                <BookOpen className="size-5 text-primary" /> Direct ISBN
+              </h3>
+              <p className="text-xs text-on-surface-variant mb-4">Instantly jump to a specific book by its ISBN.</p>
+              <form onSubmit={handleIsbnSearch} className="flex flex-col gap-2">
+                <Input
+                  placeholder="Enter ISBN..."
+                  value={isbnSearch}
+                  onChange={(e) => setIsbnSearch(e.target.value)}
+                  className="h-11 bg-surface-container-lowest text-sm focus-visible:ring-1 focus-visible:ring-primary shadow-none"
+                />
+                <Button
+                  type="submit"
+                  disabled={isbnSearching || !isbnSearch.trim()}
+                  className="w-full shadow-none font-bold"
+                >
+                  {isbnSearching ? <Loader2 className="size-4 animate-spin" /> : "Lookup ISBN"}
+                </Button>
+              </form>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            {books.map((book) => (
-              <Card key={book.id} className="group relative bg-surface-container-lowest border-0">
-                <div className="h-64 overflow-hidden bg-surface-dim relative rounded-t-md">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={book.cover} alt={book.title} className="w-full h-full object-cover mix-blend-multiply opacity-90 transition-transform duration-700 group-hover:scale-105 group-hover:opacity-100" />
-                  <div className="absolute top-4 right-4">
-                    <Badge className={`rounded-full px-3 py-1 text-[10px] uppercase tracking-wider font-medium border-0 shadow-none ${
-                        book.status === 'Available' ? 'bg-primary-container text-on-primary-container hover:bg-primary-container' : 
-                        book.status === 'Reserved' ? 'bg-tertiary-container text-on-tertiary-container hover:bg-tertiary-container' : 
-                        'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-high'
-                    }`}>
-                      {book.status}
-                    </Badge>
+          </aside>
+
+          {/* Main Content Area */}
+          <div className="flex-1">
+
+            {/* Top Toolbar */}
+            <div className="flex flex-col md:flex-row items-end gap-4 mb-6">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-outline-variant" />
+                <Input
+                  placeholder="Search by title, author, or category..."
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
+                  className="w-full h-12 pl-12 bg-white border-outline-variant/20 shadow-sm text-base focus-visible:ring-1 focus-visible:ring-primary rounded-xl"
+                />
+              </div>
+              <div className="w-full md:w-[200px] shrink-0">
+                <label className="text-xs font-semibold text-on-surface-variant mb-1 block">Sort By</label>
+                <select 
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full h-11 px-4 rounded-lg border border-outline-variant/20 bg-white text-on-surface text-sm font-medium focus:outline-none focus:border-primary transition-colors appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23737373%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:calc(100%-1rem)_center] bg-[length:0.6rem]"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="title">Title A-Z</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Book Grid */}
+            {loading ? (
+              <div className="bg-white rounded-xl border border-outline-variant/15 p-16 flex flex-col items-center justify-center shadow-sm">
+                <Loader2 className="size-8 animate-spin text-primary opacity-60 mb-4" />
+                <p className="text-on-surface-variant text-sm font-medium">Fetching catalog...</p>
+              </div>
+            ) : books.length === 0 ? (
+              <div className="bg-white rounded-xl border border-outline-variant/15 p-16 flex flex-col items-center justify-center shadow-sm text-center">
+                <Search className="size-10 text-outline-variant opacity-50 mb-4" />
+                <h3 className="text-lg font-bold text-on-surface mb-2">No books found</h3>
+                <p className="text-on-surface-variant text-sm">Try adjusting your filters or search terms.</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                  {(() => {
+                    let displayedBooks = [...books];
+                    
+                    // Client-side availability filter
+                    if (availableOnly) {
+                      displayedBooks = displayedBooks.filter(b => b.availableCopies > 0);
+                    }
+
+                    // Client-side sorting
+                    displayedBooks.sort((a, b) => {
+                      if (sortBy === "title") return a.title.localeCompare(b.title);
+                      if (sortBy === "oldest") return a.id - b.id;
+                      return b.id - a.id; // newest (default fallback)
+                    });
+
+                    if (displayedBooks.length === 0) {
+                      return (
+                        <div className="col-span-full py-10 text-center text-on-surface-variant font-medium">
+                          No books match your current filters.
+                        </div>
+                      );
+                    }
+
+                    return displayedBooks.map((book) => {
+                    const status = getStatus(book);
+                    return (
+                      <div key={book.id} className="bg-white rounded-xl border border-outline-variant/15 overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+
+                        {/* Image Area */}
+                        <div className="relative h-[220px] bg-surface-container-lowest border-b border-outline-variant/10">
+                          {book.coverImageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={book.coverImageUrl}
+                              alt={book.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-surface-container/50 text-outline">
+                              <BookOpen className="size-10 mb-2 opacity-50" />
+                              <span className="text-xs font-bold uppercase tracking-wider opacity-60">No Photo</span>
+                            </div>
+                          )}
+
+                          {/* Status Badge */}
+                          <div className="absolute top-3 right-3">
+                            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white shadow-md ${status === "Available" ? "bg-[#22c55e]" : "bg-[#ef4444]"
+                              }`}>
+                              {status === "Available" ? (
+                                <CheckCircle2 className="size-3.5" />
+                              ) : (
+                                <XCircle className="size-3.5" />
+                              )}
+                              {status}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Content Area */}
+                        <div className="p-5 flex flex-col flex-1">
+                          <h3 className="font-bold text-lg text-on-surface leading-tight mb-2 line-clamp-2 min-h-[44px]">
+                            {book.title}
+                          </h3>
+
+                          <div className="flex items-center gap-2 text-sm text-on-surface-variant mb-4">
+                            <User className="size-4 shrink-0" />
+                            <span className="truncate">{book.author}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px] font-medium text-on-surface-variant mb-3">
+                            <span>ISBN: {book.isbn}</span>
+                            <span>{book.availableCopies}/{book.totalCopies} copies</span>
+                          </div>
+
+                          <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-2 mb-5 flex-1">
+                            {book.description || "No description available."}
+                          </p>
+
+                          <Button
+                            variant="outline"
+                            onClick={() => router.push(`/books/${book.id}`)}
+                            className={`w-full font-bold border-2 h-11 ${status === "Available"
+                                ? "border-primary/20 text-primary hover:bg-primary/5 hover:border-primary"
+                                : "border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-lowest"
+                              }`}
+                          >
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })})()}
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between bg-white rounded-xl border border-outline-variant/20 p-4 shadow-sm">
+                  <p className="text-sm text-on-surface-variant font-medium">
+                    Page {page + 1}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="gap-2 shadow-none border-outline-variant/30 text-on-surface-variant hover:bg-surface-container"
+                      disabled={page === 0 || loading}
+                      onClick={() => setPage(p => p - 1)}
+                    >
+                      <ChevronLeft className="size-4" /> Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="gap-2 shadow-none border-outline-variant/30 text-on-surface-variant hover:bg-surface-container"
+                      disabled={!hasMore || loading}
+                      onClick={() => setPage(p => p + 1)}
+                    >
+                      Next <ChevronRight className="size-4" />
+                    </Button>
                   </div>
                 </div>
-                
-                <CardContent className="pt-6 pb-2 px-6">
-                  <span className="mono-data text-xs mb-3 block opacity-70">ISBN {book.isbn} · {book.year}</span>
-                  <h3 className="font-serif text-xl font-medium leading-snug mb-1 text-on-surface line-clamp-2">{book.title}</h3>
-                  <p className="text-sm text-outline group-hover:text-primary transition-colors">{book.author}</p>
-                </CardContent>
+              </>
+            )}
 
-                <CardFooter className="px-6 pb-6 pt-4 border-0 bg-transparent flex justify-between items-center mt-auto">
-                  <Button variant="default" className="w-[calc(100%-2rem)] mx-auto opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 absolute bottom-6 left-4 shadow-none">
-                    Reserve Now
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
           </div>
-        </section>
+        </div>
       </div>
+
+      {/* Scrollbar Custom CSS */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 0px; background: transparent; }
+      `}} />
     </div>
   );
 }
