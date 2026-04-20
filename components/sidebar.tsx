@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { name: "Loans", href: "/loans", icon: BookLock },
   { name: "Fines", href: "/fines", icon: Receipt },
   { name: "Reservation", href: "/reservations", icon: Bookmark },
-  { name: "Subscription", href: "/subscription", icon: Crown },
+  { name: "Subscriptions", href: "/subscriptions", icon: Crown },
   { name: "Wishlist", href: "/wishlist", icon: Heart },
 ];
 
@@ -34,7 +34,7 @@ export function Sidebar() {
           </div>
           <span className="font-serif text-xl font-medium tracking-tight text-primary-container">Costa</span>
         </div>
-        
+
         <nav className="flex flex-col gap-1">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -43,8 +43,8 @@ export function Sidebar() {
             return (
               <Link key={item.name} href={item.href} className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-colors",
-                isActive 
-                  ? "bg-surface-container-highest text-primary shadow-none" 
+                isActive
+                  ? "bg-surface-container-highest text-primary shadow-none"
                   : "text-on-surface-variant hover:bg-surface-container-highest hover:text-primary"
               )}>
                 <Icon className="size-[18px]" /> {item.name}

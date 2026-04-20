@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, BookOpen, Hash, Tag, Building2, Calendar, FileText, BookmarkPlus } from "lucide-react";
+import { ArrowLeft, Loader2, BookOpen, Hash, Tag, Building2, Calendar, FileText, BookmarkPlus, BookUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Book {
@@ -29,6 +29,20 @@ export default function BookDetailsPage({ params: paramsPromise }: { params: Pro
 
   const [myActiveLoan, setMyActiveLoan] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Modal States
+  const [modalType, setModalType] = useState<"checkin" | "checkout" | "reserve" | null>(null);
+  const [modalNotes, setModalNotes] = useState("");
+
+  const openModal = (type: "checkin" | "checkout" | "reserve") => {
+    setModalType(type);
+    setModalNotes("");
+  };
+
+  const closeModal = () => {
+    setModalType(null);
+    setModalNotes("");
+  };
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -96,11 +110,41 @@ export default function BookDetailsPage({ params: paramsPromise }: { params: Pro
 
   const isAvailable = book.availableCopies > 0;
 
-  const handleAction = async (endpoint: string, payload: any, successMessage: string) => {
+  const handleActionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!book || !modalType) return;
+
     setActionLoading(true);
     try {
       const token = localStorage.getItem("jwt");
       if (!token) throw new Error("Please log in first.");
+
+      let endpoint = "";
+      let payload: any = {};
+      let successMessage = "";
+
+      if (modalType === "checkin") {
+        if (!myActiveLoan) throw new Error("No active loan to return.");
+        endpoint = "book-loans/checkin";
+        payload = {
+          bookLoanId: myActiveLoan.id,
+          condition: "RETURNED",
+          notes: modalNotes || "Returned via User Portal"
+        };
+        successMessage = "Book successfully checked in!";
+      } else if (modalType === "checkout") {
+        endpoint = "book-loans/checkout";
+        payload = {
+          bookId: book.id,
+          checkoutDays: 14,
+          notes: modalNotes || "Checked out via User Portal"
+        };
+        successMessage = "Book successfully checked out!";
+      } else if (modalType === "reserve") {
+        endpoint = "reservations/create";
+        payload = { bookId: book.id }; // Reservation likely just takes bookId
+        successMessage = "Reservation created successfully!";
+      }
 
       const response = await fetch(`http://localhost:8080/api/${endpoint}`, {
         method: "POST",
@@ -121,6 +165,7 @@ export default function BookDetailsPage({ params: paramsPromise }: { params: Pro
       }
 
       alert(successMessage);
+      closeModal();
       window.location.reload(); // Quick refresh to update states
     } catch (err: any) {
       alert(err.message || "An error occurred.");
@@ -173,24 +218,16 @@ export default function BookDetailsPage({ params: paramsPromise }: { params: Pro
             <div className="space-y-3 mt-auto">
               {myActiveLoan ? (
                 <Button 
-                  onClick={() => handleAction("book-loans/checkin", {
-                    bookLoanId: myActiveLoan.id,
-                    condition: "RETURNED",
-                    notes: "Returned via User Portal"
-                  }, "Book successfully checked in!")}
+                  onClick={() => openModal("checkin")}
                   disabled={actionLoading}
                   className="w-full h-14 text-base font-bold shadow-md hover:shadow-lg transition-all gap-2 bg-[#f97316] hover:bg-[#ea580c] text-white"
                 >
-                  {actionLoading ? <Loader2 className="size-5 animate-spin" /> : <BookmarkPlus className="size-5" />}
+                  {actionLoading ? <Loader2 className="size-5 animate-spin" /> : <BookUp className="size-5" />}
                   Checkin / Return Book
                 </Button>
               ) : isAvailable ? (
                 <Button 
-                  onClick={() => handleAction("book-loans/checkout", {
-                    bookId: book.id,
-                    checkoutDays: 14,
-                    notes: "Checked out via User Portal"
-                  }, "Book successfully checked out!")}
+                  onClick={() => openModal("checkout")}
                   disabled={actionLoading}
                   className="w-full h-14 text-base font-bold shadow-md hover:shadow-lg transition-all gap-2 bg-[#22c55e] hover:bg-[#16a34a] text-white"
                 >
@@ -199,7 +236,7 @@ export default function BookDetailsPage({ params: paramsPromise }: { params: Pro
                 </Button>
               ) : (
                 <Button 
-                  onClick={() => handleAction("reservations/create", { bookId: book.id }, "Reservation created successfully!")}
+                  onClick={() => openModal("reserve")}
                   disabled={actionLoading}
                   className="w-full h-14 text-base font-bold shadow-md hover:shadow-lg transition-all gap-2 bg-primary hover:bg-primary/90 text-on-primary"
                 >
@@ -289,6 +326,76 @@ export default function BookDetailsPage({ params: paramsPromise }: { params: Pro
           </div>
         </div>
       </div>
+
+      {/* Reusable Modal Overlay */}
+      {modalType && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className={`px-6 py-4 border-b flex items-center justify-between ${
+              modalType === "checkin" ? "bg-[#fff7ed] border-[#ffedd5]" :
+              modalType === "checkout" ? "bg-[#f0fdf4] border-[#bbf7d0]" :
+              "bg-[#eff6ff] border-[#dbeafe]"
+            }`}>
+              <h3 className={`font-bold text-lg flex items-center gap-2 ${
+                modalType === "checkin" ? "text-[#ea580c]" :
+                modalType === "checkout" ? "text-[#16a34a]" :
+                "text-[#2563eb]"
+              }`}>
+                {modalType === "checkin" ? <BookUp className="size-5" /> : <BookmarkPlus className="size-5" />}
+                {modalType === "checkin" ? "Confirm Return" : 
+                 modalType === "checkout" ? "Confirm Checkout" : "Confirm Reservation"}
+              </h3>
+              <button onClick={closeModal} className="text-black/40 hover:text-black/70 transition-colors">
+                <X className="size-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleActionSubmit} className="p-6">
+              <div className="mb-6">
+                <p className="text-on-surface-variant text-sm mb-4 leading-relaxed">
+                  You are about to {modalType === "checkin" ? "return" : modalType === "checkout" ? "checkout" : "reserve"}
+                  <strong className="text-on-surface"> {book.title}</strong>.
+                  {modalType === "checkout" && " The loan period will be set to 14 days by default."}
+                  {modalType === "reserve" && " You will be placed in the queue for the next available copy."}
+                </p>
+
+                {modalType !== "reserve" && (
+                  <>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+                      Optional Notes
+                    </label>
+                    <textarea
+                      value={modalNotes}
+                      onChange={(e) => setModalNotes(e.target.value)}
+                      placeholder="E.g., I really needed this book!"
+                      className="w-full h-24 p-3 rounded-lg border border-outline-variant/30 bg-surface-container-lowest text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none"
+                    />
+                  </>
+                )}
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <Button type="button" variant="ghost" onClick={closeModal} className="font-bold text-on-surface-variant hover:bg-surface-container">
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={actionLoading} 
+                  className={`font-bold shadow-md text-white ${
+                    modalType === "checkin" ? "bg-[#ea580c] hover:bg-[#c2410c] shadow-orange-200" :
+                    modalType === "checkout" ? "bg-[#22c55e] hover:bg-[#16a34a] shadow-green-200" :
+                    "bg-primary hover:bg-primary/90 shadow-indigo-200"
+                  }`}
+                >
+                  {actionLoading && <Loader2 className="size-4 animate-spin mr-2" />}
+                  Confirm
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
