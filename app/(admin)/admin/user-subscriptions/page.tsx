@@ -16,6 +16,7 @@ interface Subscription {
   startDate: string;
   endDate: string;
   daysRemaining: number;
+  isActive: boolean;
 }
 
 export default function AdminUserSubscriptions() {
@@ -80,6 +81,41 @@ export default function AdminUserSubscriptions() {
     }
   };
 
+  const handleActivate = async (id: number) => {
+    try {
+      // Simulate payment ID with 999 for manual admin activation
+      const response = await fetch(
+        `http://localhost:8080/api/subscriptions/activate?subscriptionId=${id}&paymentId=999`,
+        {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${localStorage.getItem("jwt")}` }
+        }
+      );
+      if (!response.ok) throw new Error("Failed to activate subscription.");
+      setTriggerMsg("Subscription activated successfully.");
+      fetchSubscriptions();
+    } catch (err: any) {
+      setTriggerMsg(err.message || "Network error during activation.");
+    }
+  };
+
+  const handleCancel = async (id: number) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/subscriptions/cancel/${id}?reason=Admin%20Cancelled`,
+        {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${localStorage.getItem("jwt")}` }
+        }
+      );
+      if (!response.ok) throw new Error("Failed to cancel subscription.");
+      setTriggerMsg("Subscription cancelled successfully.");
+      fetchSubscriptions();
+    } catch (err: any) {
+      setTriggerMsg(err.message || "Network error during cancellation.");
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "—";
     return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
@@ -129,6 +165,7 @@ export default function AdminUserSubscriptions() {
                   <TableHead className="text-on-surface-variant font-semibold text-xs uppercase tracking-wider">Plan</TableHead>
                   <TableHead className="text-on-surface-variant font-semibold text-xs uppercase tracking-wider">User Email</TableHead>
                   <TableHead className="text-on-surface-variant font-semibold text-xs uppercase tracking-wider text-center">Price</TableHead>
+                  <TableHead className="text-on-surface-variant font-semibold text-xs uppercase tracking-wider text-center">Status</TableHead>
                   <TableHead className="text-on-surface-variant font-semibold text-xs uppercase tracking-wider text-center">Start Date</TableHead>
                   <TableHead className="text-on-surface-variant font-semibold text-xs uppercase tracking-wider text-center">End Date</TableHead>
                   <TableHead className="text-on-surface-variant font-semibold text-xs uppercase tracking-wider text-center">Days Left</TableHead>
@@ -138,14 +175,14 @@ export default function AdminUserSubscriptions() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-48 text-center">
+                    <TableCell colSpan={9} className="h-48 text-center">
                       <Loader2 className="size-6 animate-spin text-primary mx-auto opacity-60" />
                     </TableCell>
                   </TableRow>
                 ) : subscriptions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-48 text-center text-on-surface-variant font-medium text-sm">
-                      No active subscriptions found.
+                    <TableCell colSpan={9} className="h-48 text-center text-on-surface-variant font-medium text-sm">
+                      No subscriptions found.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -175,6 +212,17 @@ export default function AdminUserSubscriptions() {
                         </span>
                       </TableCell>
 
+                      {/* Status */}
+                      <TableCell className="py-4 text-center">
+                        <Badge className={`rounded-full px-3 py-0.5 text-[10px] font-semibold border-0 shadow-none ${
+                          s.isActive 
+                            ? "bg-[#dcfce7] text-[#166534] hover:bg-[#dcfce7]" 
+                            : "bg-[#f1f5f9] text-[#475569] hover:bg-[#f1f5f9]"
+                        }`}>
+                          {s.isActive ? "ACTIVE" : "INACTIVE"}
+                        </Badge>
+                      </TableCell>
+
                       {/* Start Date */}
                       <TableCell className="py-4 text-center text-xs text-on-surface-variant">
                         {formatDate(s.startDate)}
@@ -199,7 +247,16 @@ export default function AdminUserSubscriptions() {
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell className="py-4 text-right pr-6">
+                      <TableCell className="py-4 text-right pr-6 space-x-2 whitespace-nowrap">
+                        {!s.isActive ? (
+                          <Button variant="outline" size="sm" onClick={() => handleActivate(s.id)} className="h-8 text-xs font-bold border-[#86efac] text-[#16a34a] hover:bg-[#f0fdf4]">
+                            Activate
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" onClick={() => handleCancel(s.id)} className="h-8 text-xs font-bold border-[#fca5a5] text-[#dc2626] hover:bg-[#fef2f2]">
+                            Cancel
+                          </Button>
+                        )}
                         <Link href={`/admin/user-subscriptions/${s.id}`}>
                           <Button variant="ghost" size="icon" className="size-8 rounded-lg text-primary hover:bg-primary/10 hover:text-primary">
                             <Eye className="size-4" />

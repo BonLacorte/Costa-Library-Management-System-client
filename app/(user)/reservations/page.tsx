@@ -39,7 +39,7 @@ export default function MyReservationsPage() {
       });
 
       if (!response.ok) throw new Error(`Server returned ${response.status}`);
-      
+
       const data = await response.json();
       setReservations(data.content || data || []);
     } catch (err: any) {
@@ -102,81 +102,31 @@ export default function MyReservationsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fc] w-full animate-in fade-in duration-500 relative">
-      
-      <div className="max-w-[1200px] mx-auto px-6 pt-10 pb-20">
-        
-        {/* Header */}
-        <header className="mb-10 flex items-start gap-4">
-          <div className="size-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0 shadow-lg shadow-purple-200">
-            <BookMarked className="size-7 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary mb-1">
-              My Reservations
-            </h1>
-            <p className="text-on-surface-variant">
-              Manage and track your book reservations
-            </p>
-          </div>
-        </header>
+
+      {/* Header */}
+      <div className="bg-white pt-10 pb-10 border-b border-outline-variant/10 mb-8">
+        <div className="max-w-[1400px] mx-auto px-6 text-center">
+          <h1 className="text-4xl font-bold tracking-tight text-on-surface mb-3">My Reservations</h1>
+          <p className="text-on-surface-variant text-base">Manage and track your book  reservations</p>
+        </div>
+      </div>
+
+      <div className="max-w-[1400px] mx-auto px-6 pb-20">
 
         {/* Statistic Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-outline-variant/15 flex justify-between items-start">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Total Reservations</p>
-              <p className="text-4xl font-bold text-[#1e1b4b]">{reservations.length}</p>
-            </div>
-            <div className="size-12 rounded-xl bg-violet-600 flex items-center justify-center shadow-md">
-              <BookMarked className="size-6 text-white" />
-            </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-outline-variant/15 text-center">
+            <p className="text-3xl font-bold text-violet-600 mb-1">{reservations.length}</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total Reservations</p>
           </div>
-          <div className="bg-[#fffbeb] rounded-xl p-6 shadow-sm border border-[#fef3c7] flex justify-between items-start">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#b45309] mb-1">Active</p>
-              <p className="text-4xl font-bold text-[#92400e]">{activeCount}</p>
-            </div>
-            <div className="size-12 rounded-xl bg-[#f59e0b] flex items-center justify-center shadow-md">
-              <AlarmClock className="size-6 text-white" />
-            </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-outline-variant/15 text-center">
+            <p className="text-3xl font-bold text-[#ea580c] mb-1">{activeCount}</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Active</p>
           </div>
-          <div className="bg-[#f0fdf4] rounded-xl p-6 shadow-sm border border-[#dcfce7] flex justify-between items-start">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#15803d] mb-1">Ready to Pick Up</p>
-              <p className="text-4xl font-bold text-[#166534]">{readyCount}</p>
-            </div>
-            <div className="size-12 rounded-xl bg-[#22c55e] flex items-center justify-center shadow-md">
-              <CalendarCheck className="size-6 text-white" />
-            </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-outline-variant/15 text-center">
+            <p className="text-3xl font-bold text-[#16a34a] mb-1">{readyCount}</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Ready to Pick Up</p>
           </div>
-        </div>
-
-        {/* Tab Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-outline-variant/15 flex overflow-hidden mb-8">
-          <button 
-            onClick={() => setActiveTab("ALL")}
-            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
-              activeTab === "ALL" ? "text-violet-600 border-b-2 border-violet-600 bg-violet-50/50" : "text-on-surface-variant hover:bg-surface-container-lowest"
-            }`}
-          >
-            <BookMarked className="size-4" /> All Reservations
-          </button>
-          <button 
-            onClick={() => setActiveTab("ACTIVE")}
-            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
-              activeTab === "ACTIVE" ? "text-violet-600 border-b-2 border-violet-600 bg-violet-50/50" : "text-on-surface-variant hover:bg-surface-container-lowest"
-            }`}
-          >
-            <AlarmClock className="size-4" /> Active
-          </button>
-          <button 
-            onClick={() => setActiveTab("COMPLETED")}
-            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
-              activeTab === "COMPLETED" ? "text-violet-600 border-b-2 border-violet-600 bg-violet-50/50" : "text-on-surface-variant hover:bg-surface-container-lowest"
-            }`}
-          >
-            <CheckCircle2 className="size-4" /> Completed
-          </button>
         </div>
 
         {error && (
@@ -185,117 +135,154 @@ export default function MyReservationsPage() {
           </div>
         )}
 
-        {/* Content */}
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-outline-variant/15 p-20 flex flex-col items-center justify-center shadow-sm">
-            <Loader2 className="size-10 animate-spin text-primary opacity-60 mb-4" />
-            <p className="text-on-surface-variant font-medium">Fetching reservations...</p>
-          </div>
-        ) : filteredReservations.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-outline-variant/15 p-20 flex flex-col items-center justify-center shadow-sm text-center">
-            <div className="size-20 rounded-full bg-surface-container-low flex items-center justify-center mb-6 border border-outline-variant/20">
-              <BookMarked className="size-10 text-on-surface-variant opacity-60" />
+        <div className="flex flex-col lg:flex-row gap-6">
+
+          {/* Left Sidebar (Filters) */}
+          <aside className="w-full lg:w-[280px] shrink-0 space-y-6">
+            {/* Status Filter Card */}
+            <div className="bg-white rounded-xl border border-outline-variant/20 p-5 shadow-sm">
+              <h3 className="font-bold text-lg text-on-surface mb-4">Status</h3>
+              <div className="space-y-1">
+                {[
+                  { id: "ALL", label: "All Reservations", icon: BookMarked },
+                  { id: "ACTIVE", label: "Active", icon: AlarmClock },
+                  { id: "COMPLETED", label: "Completed", icon: CheckCircle2 }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id
+                      ? "bg-[#f3e8ff] text-primary"
+                      : "text-on-surface-variant hover:bg-surface-container-lowest"
+                      }`}
+                  >
+                    <div className={`size-4 rounded-full border-[4px] flex items-center justify-center shrink-0 ${activeTab === tab.id
+                      ? "border-primary bg-white"
+                      : "border-outline-variant/50 bg-transparent"
+                      }`} />
+                    {/* <tab.icon className="size-4 opacity-70" /> */}
+                    <span className="truncate">{tab.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-on-surface mb-2">No Reservations Found</h2>
-            <p className="text-on-surface-variant">
-              You do not have any {activeTab !== "ALL" ? activeTab.toLowerCase() : ""} reservations currently.
-            </p>
-            <Button onClick={() => router.push("/books")} className="mt-6 font-bold">
-              Browse Books
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredReservations.map((reservation) => {
-              const status = reservation.status;
-              
-              // Colors configuration
-              const colors = {
-                PENDING: { bg: "bg-[#fef3c7]", text: "text-[#b45309]", icon: <HourglassIcon className="size-4 mr-2" /> },
-                AVAILABLE: { bg: "bg-[#dcfce7]", text: "text-[#15803d]", icon: <CalendarCheck className="size-4 mr-2" /> },
-                FULFILLED: { bg: "bg-[#dbeafe]", text: "text-[#1d4ed8]", icon: <CheckCircle2 className="size-4 mr-2" /> },
-                CANCELLED: { bg: "bg-[#fee2e2]", text: "text-[#b91c1c]", icon: <X className="size-4 mr-2" /> },
-                EXPIRED: { bg: "bg-[#f1f5f9]", text: "text-[#475569]", icon: <CalendarX className="size-4 mr-2" /> }
-              }[status] || { bg: "bg-[#f1f5f9]", text: "text-[#475569]", icon: <BookMarked className="size-4 mr-2" /> };
+          </aside>
 
-              return (
-                <div key={reservation.id} className="bg-white rounded-2xl border border-outline-variant/15 shadow-sm overflow-hidden flex flex-col h-full">
-                  
-                  {/* Status Banner */}
-                  <div className={`px-5 py-3 text-xs font-bold uppercase tracking-wider flex items-center ${colors.bg} ${colors.text}`}>
-                    {colors.icon} {status.replace('_', ' ')}
-                  </div>
-                  
-                  {/* Card Body */}
-                  <div className="p-6 flex flex-col flex-grow">
-                    <div className="flex items-start gap-4 mb-5">
-                      <div className="size-12 rounded-xl bg-violet-600 flex items-center justify-center shrink-0 shadow-md">
-                        <BookMarked className="size-6 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Book ID</p>
-                        <p className="text-xl font-bold text-[#1e1b4b]">#{reservation.bookId}</p>
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-lg font-bold text-[#1e1b4b] mb-6 leading-tight">
-                      {reservation.bookTitle || `Book ID #${reservation.bookId}`}
-                    </h3>
+          {/* Main Content Area */}
+          <div className="flex-1">
 
-                    <div className="space-y-4 mt-auto border-t border-outline-variant/15 pt-5">
-                      <div className="flex items-start gap-3">
-                        <Clock className="size-4 text-on-surface-variant mt-0.5 shrink-0" />
-                        <div>
-                          <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Reserved</p>
-                          <p className="text-xs font-bold text-on-surface mt-0.5">
-                            {new Date(reservation.reservationDate).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute:'2-digit' })}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {reservation.availableDate && (
-                        <div className="flex items-start gap-3">
-                          <CalendarCheck className="size-4 text-[#16a34a] mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-[10px] font-bold text-[#16a34a] uppercase tracking-widest">Available</p>
-                            <p className="text-xs font-bold text-[#15803d] mt-0.5">
-                              {new Date(reservation.availableDate).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute:'2-digit' })}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {reservation.fulfilledDate && (
-                        <div className="flex items-start gap-3">
-                          <CheckCircle2 className="size-4 text-[#2563eb] mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-[10px] font-bold text-[#2563eb] uppercase tracking-widest">Fulfilled</p>
-                            <p className="text-xs font-bold text-[#1d4ed8] mt-0.5">
-                              {new Date(reservation.fulfilledDate).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute:'2-digit' })}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Footer Action */}
-                  {(status === "PENDING" || status === "AVAILABLE") && (
-                    <div className="p-6 pt-0 mt-auto">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setCancelModalId(reservation.id)}
-                        className="w-full font-bold text-[#dc2626] border-[#fca5a5] hover:bg-[#fef2f2]"
-                      >
-                        <X className="size-4 mr-2" /> Cancel
-                      </Button>
-                    </div>
-                  )}
+            {loading ? (
+              <div className="bg-white rounded-2xl border border-outline-variant/15 p-20 flex flex-col items-center justify-center shadow-sm">
+                <Loader2 className="size-10 animate-spin text-primary opacity-60 mb-4" />
+                <p className="text-on-surface-variant font-medium">Fetching reservations...</p>
+              </div>
+            ) : filteredReservations.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-outline-variant/15 p-20 flex flex-col items-center justify-center shadow-sm text-center">
+                <div className="size-20 rounded-full bg-surface-container-low flex items-center justify-center mb-6 border border-outline-variant/20">
+                  <BookMarked className="size-10 text-on-surface-variant opacity-60" />
                 </div>
-              );
-            })}
+                <h2 className="text-2xl font-bold text-on-surface mb-2">No Reservations Found</h2>
+                <p className="text-on-surface-variant">
+                  You do not have any {activeTab !== "ALL" ? activeTab.toLowerCase() : ""} reservations currently.
+                </p>
+                <Button onClick={() => router.push("/books")} className="mt-6 font-bold">
+                  Browse Books
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredReservations.map((reservation) => {
+                  const status = reservation.status;
+
+                  // Colors configuration
+                  const colors = {
+                    PENDING: { bg: "bg-[#fff7ed]", text: "text-[#ea580c]", border: "border-[#fed7aa]", icon: <HourglassIcon className="size-3" /> },
+                    AVAILABLE: { bg: "bg-[#f0fdf4]", text: "text-[#16a34a]", border: "border-[#bbf7d0]", icon: <CalendarCheck className="size-3" /> },
+                    FULFILLED: { bg: "bg-[#eff6ff]", text: "text-[#2563eb]", border: "border-[#bfdbfe]", icon: <CheckCircle2 className="size-3" /> },
+                    CANCELLED: { bg: "bg-[#fef2f2]", text: "text-[#dc2626]", border: "border-[#fecaca]", icon: <X className="size-3" /> },
+                    EXPIRED: { bg: "bg-[#f8f9fc]", text: "text-[#475569]", border: "border-[#e2e8f0]", icon: <CalendarX className="size-3" /> }
+                  }[status] || { bg: "bg-[#f8f9fc]", text: "text-[#475569]", border: "border-[#e2e8f0]", icon: <BookMarked className="size-3" /> };
+
+                  return (
+                    <div key={reservation.id} className="bg-white rounded-xl border border-outline-variant/15 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+
+                      {/* Card Body */}
+                      <div className="p-5 flex flex-col flex-1">
+
+                        <div className="flex justify-between items-start mb-4">
+                          <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
+                            <BookMarked className="size-3.5" /> Book #{reservation.bookId}
+                          </p>
+                          <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1 ${colors.bg} ${colors.text} ${colors.border}`}>
+                            {colors.icon} {status.replace('_', ' ')}
+                          </div>
+                        </div>
+
+                        <h3 className="font-bold text-lg text-on-surface leading-tight mb-4 line-clamp-2 min-h-[44px]">
+                          {reservation.bookTitle || `Book ID #${reservation.bookId}`}
+                        </h3>
+
+                        <div className="space-y-3 mt-auto pt-4 border-t border-outline-variant/15">
+                          <div className="flex items-start gap-2">
+                            <Clock className="size-3.5 text-on-surface-variant mt-0.5 shrink-0" />
+                            <div>
+                              <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Reserved</p>
+                              <p className="text-xs font-bold text-on-surface">
+                                {new Date(reservation.reservationDate).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+
+                          {reservation.availableDate && (
+                            <div className="flex items-start gap-2">
+                              <CalendarCheck className="size-3.5 text-[#16a34a] mt-0.5 shrink-0" />
+                              <div>
+                                <p className="text-[10px] font-bold text-[#16a34a] uppercase tracking-widest">Available</p>
+                                <p className="text-xs font-bold text-[#15803d]">
+                                  {new Date(reservation.availableDate).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {reservation.fulfilledDate && (
+                            <div className="flex items-start gap-2">
+                              <CheckCircle2 className="size-3.5 text-[#2563eb] mt-0.5 shrink-0" />
+                              <div>
+                                <p className="text-[10px] font-bold text-[#2563eb] uppercase tracking-widest">Fulfilled</p>
+                                <p className="text-xs font-bold text-[#1d4ed8]">
+                                  {new Date(reservation.fulfilledDate).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Footer Action */}
+                        <div className="pt-4 border-t border-outline-variant/10 mt-4">
+                          {(status === "PENDING" || status === "AVAILABLE") ? (
+                            <Button
+                              variant="outline"
+                              onClick={() => setCancelModalId(reservation.id)}
+                              className="w-full font-bold h-11 text-[#dc2626] border-[#fca5a5] hover:bg-[#fef2f2]"
+                            >
+                              <X className="size-4 mr-2" /> Cancel Reservation
+                            </Button>
+                          ) : (
+                            <Button variant="outline" disabled className="w-full font-bold h-11 border-outline-variant/30 text-on-surface-variant/50">
+                              Closed
+                            </Button>
+                          )}
+                        </div>
+
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Cancel Confirmation Modal */}
@@ -310,7 +297,7 @@ export default function MyReservationsPage() {
                 <X className="size-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleCancelReservation} className="p-6">
               <div className="mb-8">
                 <p className="text-on-surface-variant text-sm leading-relaxed">
@@ -322,9 +309,9 @@ export default function MyReservationsPage() {
                 <Button type="button" variant="ghost" onClick={() => setCancelModalId(null)} className="font-bold text-on-surface-variant hover:bg-surface-container">
                   Keep Reservation
                 </Button>
-                <Button 
-                  type="submit" 
-                  disabled={actionLoading} 
+                <Button
+                  type="submit"
+                  disabled={actionLoading}
                   className="font-bold shadow-md bg-[#dc2626] hover:bg-[#b91c1c] text-white shadow-red-200"
                 >
                   {actionLoading ? <Loader2 className="size-4 animate-spin mr-2" /> : <X className="size-4 mr-2" />}

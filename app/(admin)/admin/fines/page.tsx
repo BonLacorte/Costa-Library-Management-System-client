@@ -7,8 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import {
   Loader2, ChevronLeft, ChevronRight, SlidersHorizontal,
-  Banknote, ShieldMinus, Trash2, X
+  Banknote, ShieldMinus, Trash2, X, Plus
 } from "lucide-react";
+import Link from "next/link";
 
 interface Fine {
   id: number;
@@ -129,17 +130,24 @@ export default function AdminFines() {
           <p className="text-sm text-on-surface-variant font-medium">Paid Fines</p>
         </div>
         <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
-          <p className="text-3xl font-bold mb-1 text-primary">${stats.collected.toFixed(2)}</p>
+          <p className="text-3xl font-bold mb-1 text-primary">₱{stats.collected.toFixed(2)}</p>
           <p className="text-sm text-on-surface-variant font-medium">Total Collected</p>
         </div>
         <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
-          <p className="text-3xl font-bold mb-1 text-error">${stats.outstanding.toFixed(2)}</p>
+          <p className="text-3xl font-bold mb-1 text-error">₱{stats.outstanding.toFixed(2)}</p>
           <p className="text-sm text-on-surface-variant font-medium">Total Outstanding</p>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-end mb-4">
+      <div className="flex items-center justify-end gap-3 mb-4">
+        <Link href="/admin/fines/create">
+          <Button
+            className="h-10 rounded-lg gap-2 shadow-lg shadow-primary/20 font-bold px-4 bg-primary text-on-primary"
+          >
+            <Plus className="size-4" /> CREATE FINE
+          </Button>
+        </Link>
         <Button
           variant="outline"
           onClick={() => setShowFilters(v => !v)}
@@ -295,12 +303,12 @@ export default function AdminFines() {
 
                       {/* Amount */}
                       <TableCell className="pt-5 font-semibold text-on-surface text-right">
-                        ${Number(fine.amount).toFixed(2)}
+                        ₱{Number(fine.amount).toFixed(2)}
                       </TableCell>
 
                       {/* Amount Paid */}
                       <TableCell className="pt-5 font-semibold text-[#22c55e] text-right">
-                        ${Number(fine.amountPaid).toFixed(2)}
+                        ₱{Number(fine.amountPaid).toFixed(2)}
                       </TableCell>
 
                       {/* Status */}

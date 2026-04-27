@@ -137,8 +137,32 @@ export default function AdminLoans() {
   const update = (patch: Partial<SearchBody>) =>
     setSearch(prev => ({ ...prev, ...patch, page: "page" in patch ? patch.page! : 0 }));
 
-  const handleAction = (action: string, loanId: number) =>
-    console.log(`[Book Loans] Action: ${action} | Loan ID: ${loanId}`);
+  const handleAction = async (action: string, loanId: number) => {
+    if (action === "EDIT") return; // Handled by Link
+
+    const token = localStorage.getItem("jwt");
+    if (!token) return;
+
+    let status = "";
+    switch (action) {
+      case "RETURN": status = "RETURNED"; break;
+      case "DAMAGE": status = "DAMAGED"; break;
+      case "LOSS":   status = "LOST"; break;
+      case "OVERDUE": status = "OVERDUE"; break;
+      default: return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8080/api/book-loans/${loanId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) fetchLoans();
+    } catch (err) {
+      console.error("Failed to update loan status", err);
+    }
+  };
 
   const formatDate = (d: string | null) => {
     if (!d) return "—";
@@ -432,11 +456,19 @@ export default function AdminLoans() {
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => handleAction("EDIT", loan.id)}
-                            className="h-7 w-28 rounded-md text-[11px] font-bold bg-primary hover:bg-primary/90 text-on-primary shadow-none gap-1.5"
+                            onClick={() => handleAction("OVERDUE", loan.id)}
+                            className="h-7 w-28 rounded-md text-[11px] font-bold bg-amber-700 hover:bg-amber-800 text-white shadow-none gap-1.5"
                           >
-                            <Pencil className="size-3.5" /> EDIT
+                            <AlertTriangle className="size-3.5" /> OVERDUE
                           </Button>
+                          <Link href={`/admin/loans/${loan.id}/edit`} className="w-28">
+                            <Button
+                              size="sm"
+                              className="h-7 w-full rounded-md text-[11px] font-bold bg-primary hover:bg-primary/90 text-on-primary shadow-none gap-1.5"
+                            >
+                              <Pencil className="size-3.5" /> EDIT
+                            </Button>
+                          </Link>
                           <Link href={`/admin/loans/${loan.id}`} className="w-28">
                             <Button
                               size="sm"

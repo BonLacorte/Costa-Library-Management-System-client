@@ -60,11 +60,11 @@ export default function AdminUsersList() {
 
   return (
     <div className="p-6 lg:p-10 pb-20 w-full animate-in fade-in duration-500">
-      
+
       {/* Header section */}
       <header className="mb-8">
         <h1 className="font-serif text-3xl font-semibold tracking-tight text-on-surface mb-1 flex items-center gap-3">
-          <Users className="size-7 text-primary" />
+          {/* <Users className="size-7 text-primary" /> */}
           Registered Users
         </h1>
         <p className="text-sm text-on-surface-variant">
@@ -73,17 +73,16 @@ export default function AdminUsersList() {
       </header>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-surface-container-low rounded-2xl p-6 border-0 shadow-none flex items-center gap-4">
-          <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Users className="size-6 text-primary" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Total Users</p>
-            <p className="text-3xl font-bold text-on-surface leading-none">{users.length}</p>
+        
+
+          <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
+            <p className="text-3xl font-bold mb-1 text-primary">{users.length}</p>
+            <p className="text-sm text-on-surface-variant font-medium">Total Users</p>
           </div>
         </div>
-        
+
         <div className="bg-surface-container-low rounded-2xl p-6 border-0 shadow-none flex items-center gap-4">
           <div className="size-12 rounded-full bg-[#f3e8ff] flex items-center justify-center shrink-0">
             <Shield className="size-6 text-primary" />
@@ -93,7 +92,7 @@ export default function AdminUsersList() {
             <p className="text-sm font-bold text-on-surface leading-none">Standard & Admins</p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {error && (
         <div className="mb-6 p-4 rounded-xl bg-error-container text-error text-sm font-medium">
@@ -103,13 +102,13 @@ export default function AdminUsersList() {
 
       {/* Main Content Area */}
       <div className="bg-surface-container-low rounded-2xl shadow-none border-0 overflow-hidden">
-        
+
         {/* Toolbar */}
         <div className="p-4 border-b border-outline-variant/15 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/50">
           <div className="relative w-full sm:max-w-[350px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-on-surface-variant" />
-            <Input 
-              placeholder="Search by name, email, or ID..." 
+            <Input
+              placeholder="Search by name, email, or ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 h-10 bg-surface-container-lowest border-outline-variant/30 focus-visible:ring-primary shadow-none w-full text-sm"
@@ -144,7 +143,7 @@ export default function AdminUsersList() {
               <tbody className="divide-y divide-outline-variant/10">
                 {filteredUsers.map((user) => {
                   const displayName = user.fullName || user.userName || (user.firstName ? `${user.firstName} ${user.lastName || ''}` : '') || "Unnamed User";
-                  
+
                   return (
                     <tr key={user.id} className="hover:bg-surface-container-lowest/30 transition-colors">
                       <td className="px-6 py-4 font-medium text-on-surface">
@@ -160,11 +159,10 @@ export default function AdminUsersList() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          user.role === 'ADMIN' || user.role === 'ROLE_ADMIN' 
-                            ? 'bg-primary/10 text-primary' 
-                            : 'bg-surface-container text-on-surface-variant'
-                        }`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${user.role === 'ADMIN' || user.role === 'ROLE_ADMIN'
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-surface-container text-on-surface-variant'
+                          }`}>
                           {user.role ? user.role.replace('ROLE_', '') : 'USER'}
                         </span>
                       </td>

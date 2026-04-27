@@ -1,181 +1,169 @@
 "use client";
 
-import { 
-  BookOpen, Calendar, Users, CreditCard, Award, Bookmark, 
-  MessageSquare, TrendingUp, CalendarDays
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
+
+interface DashboardStats {
+  totalBooks: number;
+  activeLoans: number;
+  overdueLoans: number;
+  totalUsers: number;
+  monthlyRevenue: number;
+  pendingReservations: number;
+  activeSubscriptions: number;
+  pendingFines: number;
+}
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalBooks: 0,
+    activeLoans: 0,
+    overdueLoans: 0,
+    totalUsers: 0,
+    monthlyRevenue: 0,
+    pendingReservations: 0,
+    activeSubscriptions: 0,
+    pendingFines: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      const token = localStorage.getItem("jwt");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      const headers = { Authorization: `Bearer ${token}` };
+
+      try {
+        // Fetch all stats in parallel
+        const [
+          booksRes,
+          usersRes,
+          revenueRes,
+          reservationsRes,
+          activeLoansRes,
+          overdueLoansRes,
+          subscriptionsRes,
+          finesRes,
+        ] = await Promise.allSettled([
+          fetch("http://localhost:8080/api/books/stats", { headers }),
+          fetch("http://localhost:8080/api/users/statistics", { headers }),
+          fetch("http://localhost:8080/api/payments/statistics/monthly-revenue", { headers }),
+          fetch("http://localhost:8080/api/reservations?activeOnly=true&size=1", { headers }),
+          fetch("http://localhost:8080/api/book-loans/search", {
+            method: "POST",
+            headers: { ...headers, "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "CHECKED_OUT", page: 0, size: 1 }),
+          }),
+          fetch("http://localhost:8080/api/book-loans/search", {
+            method: "POST",
+            headers: { ...headers, "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "OVERDUE", page: 0, size: 1 }),
+          }),
+          fetch("http://localhost:8080/api/subscriptions/admin/active", { headers }),
+          fetch("http://localhost:8080/api/fines?status=PENDING&size=1", { headers }),
+        ]);
+
+        const safeJson = async (result: PromiseSettledResult<Response>) => {
+          if (result.status === "fulfilled" && result.value.ok) {
+            return result.value.json();
+          }
+          return null;
+        };
+
+        const [booksData, usersData, revenueData, reservationsData, activeLoansData, overdueLoansData, subscriptionsData, finesData] =
+          await Promise.all([
+            safeJson(booksRes),
+            safeJson(usersRes),
+            safeJson(revenueRes),
+            safeJson(reservationsRes),
+            safeJson(activeLoansRes),
+            safeJson(overdueLoansRes),
+            safeJson(subscriptionsRes),
+            safeJson(finesRes),
+          ]);
+
+        setStats({
+          totalBooks: booksData?.totalActiveBooks ?? 0,
+          totalUsers: usersData?.totalUsers ?? 0,
+          monthlyRevenue: revenueData?.monthlyRevenue ?? 0,
+          pendingReservations: reservationsData?.totalElements ?? 0,
+          activeLoans: activeLoansData?.totalElements ?? 0,
+          overdueLoans: overdueLoansData?.totalElements ?? 0,
+          activeSubscriptions: Array.isArray(subscriptionsData) ? subscriptionsData.length : (subscriptionsData?.totalElements ?? 0),
+          pendingFines: finesData?.totalElements ?? 0,
+        });
+      } catch (err) {
+        console.error("Failed to fetch dashboard stats", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full flex flex-col items-center justify-center">
+        <Loader2 className="size-10 animate-spin text-primary opacity-60 mb-4" />
+        <p className="text-on-surface-variant font-medium">Loading dashboard...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 lg:p-10 pb-20 max-w-[1600px] w-full animate-in fade-in duration-500">
-      
+
       {/* Header */}
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-on-surface mb-1">Dashboard Overview</h1>
-        <p className="text-sm text-on-surface-variant">Welcome back! Here's what's happening in your library today.</p>
+        <h1 className="font-serif text-3xl font-semibold tracking-tight text-on-surface mb-1">Dashboard Overview</h1>
+        <p className="text-sm text-on-surface-variant">Welcome back! Here&apos;s what&apos;s happening in your library today.</p>
       </header>
 
       {/* Row 1: Primary Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        
-        {/* Total Books */}
-        <div className="rounded-xl p-6 text-white relative overflow-hidden flex flex-col justify-between h-[160px]" style={{ background: "linear-gradient(135deg, #7c5cda 0%, #5d3eb5 100%)" }}>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">Total Books</p>
-            <h2 className="text-5xl font-bold tracking-tight">9</h2>
-            <p className="text-xs opacity-80 mt-1">In collection</p>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium opacity-90">
-            <TrendingUp className="size-3.5" /> +12% from last month
-          </div>
-          <div className="absolute top-6 right-6 size-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-            <BookOpen className="size-6 text-white" />
-          </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.totalBooks}</p>
+          <p className="text-sm text-on-surface-variant font-medium">Total Books</p>
         </div>
-
-        {/* Active Loans */}
-        <div className="rounded-xl p-6 text-white relative overflow-hidden flex flex-col justify-between h-[160px]" style={{ background: "linear-gradient(135deg, #4ade80 0%, #22c55e 100%)" }}>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">Active Loans</p>
-            <h2 className="text-5xl font-bold tracking-tight">14</h2>
-            <p className="text-xs opacity-80 mt-1">10 overdue</p>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium opacity-90">
-            <TrendingUp className="size-3.5" /> +8% from last month
-          </div>
-          <div className="absolute top-6 right-6 size-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-            <Calendar className="size-6 text-white" />
-          </div>
+        <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.activeLoans}</p>
+          <p className="text-sm text-on-surface-variant font-medium">Active Loans</p>
         </div>
-
-        {/* Total Users */}
-        <div className="rounded-xl p-6 text-white relative overflow-hidden flex flex-col justify-between h-[160px]" style={{ background: "linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%)" }}>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">Total Users</p>
-            <h2 className="text-5xl font-bold tracking-tight">9</h2>
-            <p className="text-xs opacity-80 mt-1">Registered members</p>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium opacity-90">
-            <TrendingUp className="size-3.5" /> +23% from last month
-          </div>
-          <div className="absolute top-6 right-6 size-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-            <Users className="size-6 text-white" />
-          </div>
+        <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.totalUsers}</p>
+          <p className="text-sm text-on-surface-variant font-medium">Total Users</p>
         </div>
-
-        {/* Revenue */}
-        <div className="rounded-xl p-6 text-white relative overflow-hidden flex flex-col justify-between h-[160px]" style={{ background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)" }}>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">Revenue</p>
-            <h2 className="text-5xl font-bold tracking-tight">$5,158</h2>
-            <p className="text-xs opacity-80 mt-1">This month</p>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium opacity-90">
-            <TrendingUp className="size-3.5" /> +15% from last month
-          </div>
-          <div className="absolute top-6 right-6 size-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-            <CreditCard className="size-6 text-white" />
-          </div>
+        <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
+          <p className="text-3xl font-bold mb-1 text-primary">${stats.monthlyRevenue.toFixed(2)}</p>
+          <p className="text-sm text-on-surface-variant font-medium">Monthly Revenue</p>
         </div>
-
       </div>
 
-      {/* Row 2: Secondary Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        
-        {/* Active Subscriptions */}
-        <div className="rounded-xl px-6 py-8 text-white relative overflow-hidden flex flex-col justify-center h-[120px]" style={{ background: "linear-gradient(135deg, #8165d6 0%, #6142ba 100%)" }}>
-          <h2 className="text-4xl font-bold tracking-tight mb-1">13</h2>
-          <p className="text-xs font-medium opacity-80">Active Subscriptions</p>
-          <div className="absolute right-6 top-1/2 -translate-y-1/2 size-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-            <Award className="size-6 text-white" />
-          </div>
+      {/* Row 2: Quick Stats (Full Width) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.overdueLoans}</p>
+          <p className="text-sm text-on-surface-variant font-medium">Overdue Loans</p>
         </div>
-
-        {/* Pending Reservations */}
-        <div className="rounded-xl px-6 py-8 text-white relative overflow-hidden flex flex-col justify-center h-[120px]" style={{ background: "linear-gradient(135deg, #fb7185 0%, #f43f5e 100%)" }}>
-          <h2 className="text-4xl font-bold tracking-tight mb-1">4</h2>
-          <p className="text-xs font-medium opacity-80">Pending Reservations</p>
-          <div className="absolute right-6 top-1/2 -translate-y-1/2 size-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-            <Bookmark className="size-6 text-white" />
-          </div>
+        <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.pendingReservations}</p>
+          <p className="text-sm text-on-surface-variant font-medium">Pending Reservations</p>
         </div>
-
-        {/* Total Reviews */}
-        <div className="rounded-xl px-6 py-8 text-white relative overflow-hidden flex flex-col justify-center h-[120px]" style={{ background: "linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)" }}>
-          <h2 className="text-4xl font-bold tracking-tight mb-1">1</h2>
-          <p className="text-xs font-medium opacity-80">Total Reviews</p>
-          <div className="absolute right-6 top-1/2 -translate-y-1/2 size-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-            <MessageSquare className="size-6 text-white" />
-          </div>
+        <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.activeSubscriptions}</p>
+          <p className="text-sm text-on-surface-variant font-medium">Active Subscriptions</p>
         </div>
-
+        <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.pendingFines}</p>
+          <p className="text-sm text-on-surface-variant font-medium">Pending Fines</p>
+        </div>
       </div>
 
-      {/* Row 3: Activities & Quick Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Recent Activities (Left - 2/3) */}
-        <div className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4 px-2">
-            <h3 className="text-lg font-bold text-on-surface">Recent Activities</h3>
-            <span className="px-3 py-1 bg-[#22c55e] text-white text-[10px] font-bold uppercase tracking-wider rounded-full">
-              Live
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {[
-              { id: 1, user: "Pinjal Zarmariya", action: "borrowed", item: "Operations Managements", time: "42 minutes ago", type: "Loan", icon: CalendarDays },
-              { id: 2, user: "Pinjal Zarmariya", action: "subscribed to", item: "Silver Membership", time: "44 minutes ago", type: "Subscription", icon: Award },
-              { id: 3, user: "Rutika", action: "borrowed", item: "Mastering Spring Boot and Microservices", time: "2 hours ago", type: "Loan", icon: CalendarDays },
-              { id: 4, user: "Raam", action: "subscribed to", item: "Gold Membership", time: "2 hours ago", type: "Subscription", icon: Award },
-              { id: 5, user: "Rutika", action: "borrowed", item: "Human Resource Management", time: "7 hours ago", type: "Loan", icon: CalendarDays },
-            ].map(act => (
-              <div key={act.id} className="flex items-center justify-between bg-[#f8f9fc] hover:bg-[#f1f4f9] transition-colors p-4 rounded-xl">
-                <div className="flex items-center gap-4">
-                  <div className={`size-10 rounded-full flex items-center justify-center shrink-0 ${act.type === "Loan" ? "bg-indigo-100 text-indigo-500" : "bg-orange-100 text-orange-500"}`}>
-                    <act.icon className="size-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-on-surface">
-                      <span className="font-semibold">{act.user}</span> {act.action} <span className="font-semibold">{act.item}</span>
-                    </p>
-                    <p className="text-xs text-on-surface-variant mt-0.5">{act.time}</p>
-                  </div>
-                </div>
-                <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${act.type === "Loan" ? "bg-indigo-500 text-white" : "bg-[#f97316] text-white"}`}>
-                  {act.type}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Stats (Right - 1/3) */}
-        <div>
-          <h3 className="text-lg font-bold text-on-surface mb-4 px-2">Quick Stats</h3>
-          <div className="space-y-4">
-            
-            <div className="bg-rose-50 p-6 rounded-xl flex flex-col justify-center border border-rose-100/50">
-              <h2 className="text-3xl font-bold text-rose-500 mb-1">10</h2>
-              <p className="text-xs font-medium text-rose-700/70">Overdue Loans</p>
-            </div>
-
-            <div className="bg-orange-50 p-6 rounded-xl flex flex-col justify-center border border-orange-100/50">
-              <h2 className="text-3xl font-bold text-orange-500 mb-1">4</h2>
-              <p className="text-xs font-medium text-orange-700/70">Pending Reservations</p>
-            </div>
-
-            <div className="bg-emerald-50 p-6 rounded-xl flex flex-col justify-center border border-emerald-100/50">
-              <h2 className="text-3xl font-bold text-emerald-500 mb-1">13</h2>
-              <p className="text-xs font-medium text-emerald-700/70">Active Subscriptions</p>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
     </div>
   );
 }

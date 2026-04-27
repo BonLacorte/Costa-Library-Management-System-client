@@ -42,7 +42,7 @@ export default function SubscriptionCheckoutPage({ params: paramsPromise }: { pa
         if (!token) throw new Error("Please log in first.");
 
         // Fetch User Info to get userId
-        const userRes = await fetch("http://localhost:8080/api/users/me", {
+        const userRes = await fetch("http://localhost:8080/api/users/profile", {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (userRes.ok) {
@@ -105,8 +105,31 @@ export default function SubscriptionCheckoutPage({ params: paramsPromise }: { pa
         throw new Error(errMessage);
       }
 
+      // 1. Extract paymentId from response
+      const paymentData = await response.json();
+      const paymentId = paymentData.paymentId;
+
+      if (paymentId) {
+        // 2. Fetch PaymentDTO to get subscriptionId
+        const paymentRes = await fetch(`http://localhost:8080/api/payments/${paymentId}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        
+        if (paymentRes.ok) {
+          const paymentDto = await paymentRes.json();
+          const subscriptionId = paymentDto.subscriptionId;
+
+          if (subscriptionId) {
+            // 3. Simulate successful payment callback to activate the subscription
+            await fetch(`http://localhost:8080/api/subscriptions/activate?subscriptionId=${subscriptionId}&paymentId=${paymentId}`, {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${token}` }
+            });
+          }
+        }
+      }
+
       // In a real app with Razorpay, this would redirect to gateway or open modal.
-      // The backend returns a PaymentInitiateResponse. For this exercise, we assume success.
       alert(`Successfully subscribed to ${plan.planName}!`);
       router.push("/subscriptions/history");
 

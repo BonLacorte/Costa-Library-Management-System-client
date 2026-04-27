@@ -28,7 +28,7 @@ export default function AdminReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
+
   // Frontend filters
   const [filterStatus, setFilterStatus] = useState("");
   const [filterActiveOnly, setFilterActiveOnly] = useState("");
@@ -116,11 +116,11 @@ export default function AdminReservations() {
     if (!dateStr) return null;
     const date = new Date(dateStr);
     const formatted = date.toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" });
-    
+
     // Calculate days waiting
     const diffTime = Math.abs(new Date().getTime() - date.getTime());
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return (
       <div className="flex flex-col items-center">
         <span className="text-sm font-medium text-on-surface">{formatted}</span>
@@ -165,19 +165,19 @@ export default function AdminReservations() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
-          <p className="text-3xl font-bold mb-1 text-[#f97316]">{stats.pending}</p>
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.pending}</p>
           <p className="text-sm text-on-surface-variant font-medium">Pending Reservations</p>
         </div>
         <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
-          <p className="text-3xl font-bold mb-1 text-[#22c55e]">{stats.fulfilled}</p>
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.fulfilled}</p>
           <p className="text-sm text-on-surface-variant font-medium">Fulfilled</p>
         </div>
         <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
-          <p className="text-3xl font-bold mb-1 text-[#ef4444]">{stats.cancelled}</p>
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.cancelled}</p>
           <p className="text-sm text-on-surface-variant font-medium">Cancelled</p>
         </div>
         <div className="bg-surface-container-low rounded-2xl p-6 shadow-none border-0 text-center flex flex-col justify-center">
-          <p className="text-3xl font-bold mb-1 text-[#3b82f6]">{stats.total}</p>
+          <p className="text-3xl font-bold mb-1 text-primary">{stats.total}</p>
           <p className="text-sm text-on-surface-variant font-medium">Total Reservations</p>
         </div>
       </div>
@@ -188,7 +188,7 @@ export default function AdminReservations() {
           <SlidersHorizontal className="size-4 text-on-surface-variant" />
           <span className="text-sm font-semibold text-on-surface">Filter</span>
         </div>
-        
+
         <select
           value={filterStatus}
           onChange={e => setFilterStatus(e.target.value)}
@@ -215,7 +215,7 @@ export default function AdminReservations() {
           onChange={e => setFilterUserId(e.target.value)}
           className="h-10 rounded-lg border-outline-variant/30 bg-surface-container-lowest text-sm focus-visible:ring-1 focus-visible:ring-primary shadow-none w-32"
         />
-        
+
         <Input
           placeholder="Book ID"
           value={filterBookId}
@@ -294,7 +294,7 @@ export default function AdminReservations() {
 
                     {/* Priority */}
                     <TableCell className="py-4 text-center">
-                      <button 
+                      <button
                         onClick={() => updateQueuePosition(res.id)}
                         disabled={refreshingQueue === res.id}
                         className="inline-flex items-center justify-center gap-1 px-3 py-1 bg-surface-container border border-primary/20 text-primary text-xs font-bold rounded-full hover:bg-primary/10 transition-colors disabled:opacity-50 group"

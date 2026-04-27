@@ -39,7 +39,7 @@ export default function SubscriptionHistoryPage() {
       // Get user ID
       let uid = userId;
       if (!uid) {
-        const userRes = await fetch("http://localhost:8080/api/users/me", {
+        const userRes = await fetch("http://localhost:8080/api/users/profile", {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (userRes.ok) {

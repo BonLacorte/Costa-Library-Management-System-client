@@ -100,7 +100,7 @@ export default function SignUp() {
           <Input type="password" name="password" value={formData.password} onChange={handleChange} required placeholder="4 to 8 digits" className="bg-surface-container-lowest focus-visible:bg-surface-container-lowest shadow-none py-6 rounded-2xl" />
         </div>
 
-        <Button type="submit" disabled={loading} className="w-full rounded-full py-6 mt-4 shadow-[var(--shadow-ambient)] bg-secondary text-on-secondary hover:bg-secondary/90 disabled:opacity-50">
+        <Button type="submit" disabled={loading} className="w-full rounded-full py-6 mt-4 shadow-[var(--shadow-ambient)] disabled:opacity-50">
           {loading ? "Submitting..." : "Submit Application"}
         </Button>
       </form>

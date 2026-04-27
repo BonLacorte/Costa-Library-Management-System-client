@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { name: "Fines", href: "/fines", icon: Receipt },
   { name: "Reservation", href: "/reservations", icon: Bookmark },
   { name: "Subscriptions", href: "/subscriptions", icon: Crown },
-  { name: "Wishlist", href: "/wishlist", icon: Heart },
+  // { name: "Wishlist", href: "/wishlist", icon: Heart },
 ];
 
 export function Sidebar() {

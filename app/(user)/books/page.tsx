@@ -352,6 +352,12 @@ export default function UserBrowseBooks() {
                           <div className="flex items-center gap-2 text-sm text-on-surface-variant mb-4">
                             <User className="size-4 shrink-0" />
                             <span className="truncate">{book.author}</span>
+                            {book.genreName && (
+                              <>
+                                <span className="size-1 rounded-full bg-outline-variant/50 shrink-0" />
+                                <span className="text-xs font-bold text-primary uppercase tracking-wider">{book.genreName}</span>
+                              </>
+                            )}
                           </div>
 
                           <div className="flex items-center justify-between text-[11px] font-medium text-on-surface-variant mb-3">

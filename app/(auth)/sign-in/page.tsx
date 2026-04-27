@@ -53,23 +53,23 @@ export default function SignIn() {
 
       {error && (
         <div className="flex gap-3 mb-8 p-4 rounded-xl bg-error-container/50">
-           <AlertCircle className="size-5 text-error shrink-0 mt-0.5" />
-           <p className="text-sm text-error leading-relaxed">{error}</p>
+          <AlertCircle className="size-5 text-error shrink-0 mt-0.5" />
+          <p className="text-sm text-error leading-relaxed">{error}</p>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6 mb-8">
         <div className="space-y-3">
           <label className="text-sm font-medium text-on-surface-variant pl-1">Email Address</label>
-          <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required className="bg-surface-container-lowest focus-visible:bg-surface-container-lowest shadow-none py-6 rounded-2xl" />
+          <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className="bg-surface-container-lowest focus-visible:bg-surface-container-lowest shadow-none py-6 rounded-2xl" />
         </div>
-        
+
         <div className="space-y-3">
           <div className="flex justify-between items-center px-1">
-             <label className="text-sm font-medium text-on-surface-variant">Access PIN / Password</label>
-             <Link href="#" className="text-xs text-primary hover:underline underline-offset-4">Forgot PIN?</Link>
+            <label className="text-sm font-medium text-on-surface-variant">Access PIN / Password</label>
+            <Link href="#" className="text-xs text-primary hover:underline underline-offset-4">Forgot PIN?</Link>
           </div>
-          <Input type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} required placeholder="••••••••" className="bg-surface-container-lowest focus-visible:bg-surface-container-lowest shadow-none py-6 rounded-2xl font-mono text-lg tracking-widest" />
+          <Input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required placeholder="••••••••" className="bg-surface-container-lowest focus-visible:bg-surface-container-lowest shadow-none py-6 rounded-2xl font-mono text-lg tracking-widest" />
         </div>
 
         <Button type="submit" disabled={loading} className="w-full rounded-full py-6 mt-4 shadow-[var(--shadow-ambient)] disabled:opacity-50">
@@ -78,8 +78,8 @@ export default function SignIn() {
       </form>
 
       <p className="text-center text-sm text-on-surface-variant">
-        Don&apos;t have a Costa card yet?{" "}
-        <Link href="/sign-up" className="text-primary font-medium hover:underline underline-offset-4">Register in Person</Link>
+        Don&apos;t have a Costa Library account?{" "}
+        <Link href="/sign-up" className="text-primary font-medium hover:underline underline-offset-4">Register here</Link>
       </p>
     </div>
   );
