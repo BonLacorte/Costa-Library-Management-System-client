@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, BookMarked, AlarmClock, CalendarCheck, X, CheckCircle2, Clock, CalendarX, AlertCircle } from "lucide-react";
@@ -31,10 +33,10 @@ export default function MyReservationsPage() {
     setLoading(true);
     setError("");
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
-      const response = await fetch("http://localhost:8080/api/reservations/my?size=100", {
+      const response = await fetch(apiUrl("/api/reservations/my?size=100"), {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
@@ -59,10 +61,10 @@ export default function MyReservationsPage() {
 
     setActionLoading(true);
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
-      const response = await fetch(`http://localhost:8080/api/reservations/${cancelModalId}`, {
+      const response = await fetch(apiUrl(`/api/reservations/${cancelModalId}`), {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`

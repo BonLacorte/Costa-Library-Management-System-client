@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,9 +24,9 @@ export default function UpdateBook({ params: paramsPromise }: { params: Promise<
   useEffect(() => {
     const fetchBookData = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/books/${params.id}`, {
+        const response = await fetch(apiUrl(`/api/books/${params.id}`), {
           headers: {
-            "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+            "Authorization": `Bearer ${getAuthToken()}`
           }
         });
         if (response.ok) {
@@ -59,11 +61,11 @@ export default function UpdateBook({ params: paramsPromise }: { params: Promise<
     setSuccess(false);
 
     try {
-      const response = await fetch(`http://localhost:8080/api/books/admin/${params.id}`, {
+      const response = await fetch(apiUrl(`/api/books/admin/${params.id}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+          "Authorization": `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify(formData),
       });
@@ -82,10 +84,10 @@ export default function UpdateBook({ params: paramsPromise }: { params: Promise<
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/books/admin/${params.id}`, {
+      const response = await fetch(apiUrl(`/api/books/admin/${params.id}`), {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+          "Authorization": `Bearer ${getAuthToken()}`
         }
       });
       if (response.ok) {

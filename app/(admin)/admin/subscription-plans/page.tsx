@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,14 +30,14 @@ export default function AdminSubscriptionPlans() {
 
   useEffect(() => {
     const fetchPlans = async () => {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) {
         setError("Authentication token not found. Please sign in again.");
         setLoading(false);
         return;
       }
       try {
-        const response = await fetch("http://localhost:8080/api/subscription-plans/active", {
+        const response = await fetch(apiUrl("/api/subscription-plans/active"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (!response.ok) throw new Error(`Server returned ${response.status}.`);

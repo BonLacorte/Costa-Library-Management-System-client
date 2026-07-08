@@ -1,71 +1,104 @@
-# 🚀 Setup Guide: Costa LMS Client
+# Costa LMS Client Setup Guide
 
-This is the frontend portal for the **Costa Library Management System**, built with Next.js 15, React 19, and Tailwind CSS. It features dual interfaces: a Patron Portal and an Admin Dashboard.
+This guide explains how to run the frontend locally or with Docker. The backend is maintained separately in `Costa-LMS-Server`.
 
----
+## Prerequisites
 
-## 🐳 Quick Start with Docker (Recommended)
+- Node.js 20 or newer
+- npm 10 or newer
+- Costa-LMS backend running locally or deployed
+- Docker Desktop, if using containers
 
-This is the fastest way to run the frontend.
+## Environment
 
-### Prerequisites
-- **Docker Desktop** installed and running.
+Create `.env.local` from the example file:
 
-### Steps
-
-#### 1. Build the Docker Image
-Navigate to the `costa-lms-client` directory and run:
 ```bash
-docker build -t costa-lms-client .
+cp .env.example .env.local
 ```
 
-#### 2. Run the Container
+Set the backend origin:
+
 ```bash
-docker run -p 3000:3000 --name costa-lms-client costa-lms-client
+NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
-The application will be accessible at [http://localhost:3000](http://localhost:3000).
 
----
+Important:
 
-## 🔧 Manual Local Development Setup
+- Use the backend origin only, not `/api`.
+- This value is public because it is bundled into the browser.
+- Never put private secrets in `NEXT_PUBLIC_*` variables.
 
-Use this method for active development.
+## Local Development
 
-### Prerequisites
-- **Node.js**: v20 or higher.
-- **npm**: v10 or higher.
+Install dependencies:
 
-### Steps
-
-#### 1. Install Dependencies
 ```bash
 npm install
 ```
 
-#### 2. Configure Environment Variables
-Create a `.env.local` file in the root directory:
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:8080/api
-```
-*(Ensure this matches the address where your Costa-LMS-Server is running)*.
+Start the development server:
 
-#### 3. Run Development Server
 ```bash
 npm run dev
 ```
-The application will start on port 3001 (or your configured port).
 
----
+Open [http://localhost:3000](http://localhost:3000).
 
-## 🛠 Features
-- **Patron Portal**: Catalog browsing, active loans, and fine management.
-- **Admin Dashboard**: Real-time stats, user management, and circulation control.
-- **Modern UI**: Built with Shadcn/UI and Lucide Icons.
-- **Responsive Design**: Optimized for mobile, tablet, and desktop views.
+## Backend Connection
 
----
+Start `Costa-LMS-Server` first and confirm it is available at the URL configured in `NEXT_PUBLIC_API_URL`.
 
-## 👨‍💻 Connecting to the Backend
-The client communicates with the **Costa-LMS-Server** (Spring Boot). 
-- Ensure the backend server is running on `http://localhost:8080`.
-- Verify that the `NEXT_PUBLIC_API_URL` environment variable is correctly set.
+The frontend calls backend routes such as:
+
+- `/auth/login`
+- `/auth/signup`
+- `/api/books`
+- `/api/users/profile`
+- `/api/book-loans`
+- `/api/reservations`
+- `/api/fines`
+- `/api/subscriptions`
+
+## Docker
+
+Build with the default local backend:
+
+```bash
+docker build -t costa-lms-client .
+```
+
+Build with a custom backend:
+
+```bash
+docker build --build-arg NEXT_PUBLIC_API_URL=https://api.example.com -t costa-lms-client .
+```
+
+Run:
+
+```bash
+docker run --rm -p 3000:3000 --name costa-lms-client costa-lms-client
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Deployment Notes
+
+- Configure `NEXT_PUBLIC_API_URL` in the hosting provider before building.
+- Keep private payment keys, JWT signing secrets, database credentials, SMTP credentials, and cloud tokens out of the frontend.
+- If the backend URL changes after the frontend is built, rebuild the frontend image or deployment because Next.js embeds public variables at build time.
+
+## Validation
+
+Run these checks before pushing:
+
+```bash
+npm run lint
+npm run build
+```
+
+Also confirm no local-only files are staged:
+
+```bash
+git status --short
+```

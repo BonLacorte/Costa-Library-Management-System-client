@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,11 +41,11 @@ export default function AddSubscriptionPlan() {
     };
 
     try {
-      const response = await fetch("http://localhost:8080/api/subscription-plans/admin/create", {
+      const response = await fetch(apiUrl("/api/subscription-plans/admin/create"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+          "Authorization": `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify(payload),
       });

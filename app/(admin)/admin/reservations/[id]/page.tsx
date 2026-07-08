@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,14 +53,14 @@ export default function ReservationDetailPage({ params: paramsPromise }: { param
 
   useEffect(() => {
     const fetchDetail = async () => {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) {
         setError("Authentication token not found. Please sign in again.");
         setLoading(false);
         return;
       }
       try {
-        const response = await fetch(`http://localhost:8080/api/reservations/${params.id}`, {
+        const response = await fetch(apiUrl(`/api/reservations/${params.id}`), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (!response.ok) throw new Error(`Server returned ${response.status}.`);

@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -38,11 +40,11 @@ export default function SubscriptionCheckoutPage({ params: paramsPromise }: { pa
       setLoading(true);
       setError("");
       try {
-        const token = localStorage.getItem("jwt");
+        const token = getAuthToken();
         if (!token) throw new Error("Please log in first.");
 
         // Fetch User Info to get userId
-        const userRes = await fetch("http://localhost:8080/api/users/profile", {
+        const userRes = await fetch(apiUrl("/api/users/profile"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (userRes.ok) {
@@ -51,7 +53,7 @@ export default function SubscriptionCheckoutPage({ params: paramsPromise }: { pa
         }
 
         // Fetch Plan Details
-        const planRes = await fetch(`http://localhost:8080/api/subscription-plans/${resolvedParams.planId}`, {
+        const planRes = await fetch(apiUrl(`/api/subscription-plans/${resolvedParams.planId}`), {
           headers: { "Authorization": `Bearer ${token}` }
         });
 
@@ -77,7 +79,7 @@ export default function SubscriptionCheckoutPage({ params: paramsPromise }: { pa
     
     setPaymentLoading(true);
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
       const payload = {
@@ -87,7 +89,7 @@ export default function SubscriptionCheckoutPage({ params: paramsPromise }: { pa
         autoRenew: true
       };
 
-      const response = await fetch("http://localhost:8080/api/subscriptions/subscribe", {
+      const response = await fetch(apiUrl("/api/subscriptions/subscribe"), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -111,7 +113,7 @@ export default function SubscriptionCheckoutPage({ params: paramsPromise }: { pa
 
       if (paymentId) {
         // 2. Fetch PaymentDTO to get subscriptionId
-        const paymentRes = await fetch(`http://localhost:8080/api/payments/${paymentId}`, {
+        const paymentRes = await fetch(apiUrl(`/api/payments/${paymentId}`), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         
@@ -121,7 +123,7 @@ export default function SubscriptionCheckoutPage({ params: paramsPromise }: { pa
 
           if (subscriptionId) {
             // 3. Simulate successful payment callback to activate the subscription
-            await fetch(`http://localhost:8080/api/subscriptions/activate?subscriptionId=${subscriptionId}&paymentId=${paymentId}`, {
+            await fetch(apiUrl(`/api/subscriptions/activate?subscriptionId=${subscriptionId}&paymentId=${paymentId}`), {
               method: "POST",
               headers: { "Authorization": `Bearer ${token}` }
             });

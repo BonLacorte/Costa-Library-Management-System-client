@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,13 +35,13 @@ export default function SubscriptionHistoryPage() {
     setLoading(true);
     setError("");
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
       // Get user ID
       let uid = userId;
       if (!uid) {
-        const userRes = await fetch("http://localhost:8080/api/users/profile", {
+        const userRes = await fetch(apiUrl("/api/users/profile"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (userRes.ok) {
@@ -51,7 +53,7 @@ export default function SubscriptionHistoryPage() {
 
       // Fetch history. The endpoint is /api/subscriptions/history
       // The controller handles user resolution.
-      const historyRes = await fetch("http://localhost:8080/api/subscriptions/history", {
+      const historyRes = await fetch(apiUrl("/api/subscriptions/history"), {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
@@ -75,8 +77,8 @@ export default function SubscriptionHistoryPage() {
 
     setActionLoading(subId);
     try {
-      const token = localStorage.getItem("jwt");
-      const response = await fetch(`http://localhost:8080/api/subscriptions/cancel/${subId}?reason=User Cancelled`, {
+      const token = getAuthToken();
+      const response = await fetch(apiUrl(`/api/subscriptions/cancel/${subId}?reason=User Cancelled`), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`
@@ -104,7 +106,7 @@ export default function SubscriptionHistoryPage() {
   const handleRenew = async (sub: Subscription) => {
     setActionLoading(sub.id);
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       
       const payload = {
         planId: sub.planId,
@@ -113,7 +115,7 @@ export default function SubscriptionHistoryPage() {
         autoRenew: true
       };
 
-      const response = await fetch(`http://localhost:8080/api/subscriptions/renew/${sub.id}`, {
+      const response = await fetch(apiUrl(`/api/subscriptions/renew/${sub.id}`), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

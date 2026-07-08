@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,9 +22,9 @@ export default function UpdateGenre({ params: paramsPromise }: { params: Promise
   useEffect(() => {
     const fetchGenreData = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/genres/${params.id}`, {
+        const response = await fetch(apiUrl(`/api/genres/${params.id}`), {
           headers: {
-            "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+            "Authorization": `Bearer ${getAuthToken()}`
           }
         });
         if (response.ok) {
@@ -54,11 +56,11 @@ export default function UpdateGenre({ params: paramsPromise }: { params: Promise
     };
 
     try {
-      const response = await fetch(`http://localhost:8080/api/genres/${params.id}`, {
+      const response = await fetch(apiUrl(`/api/genres/${params.id}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+          "Authorization": `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify(payload),
       });
@@ -78,10 +80,10 @@ export default function UpdateGenre({ params: paramsPromise }: { params: Promise
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/genres/${params.id}`, {
+      const response = await fetch(apiUrl(`/api/genres/${params.id}`), {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+          "Authorization": `Bearer ${getAuthToken()}`
         }
       });
       if (response.ok) {

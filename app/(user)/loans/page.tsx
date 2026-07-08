@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -42,11 +44,11 @@ export default function MyLoansPage() {
     setLoading(true);
     setError("");
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
       // Fetch Loans
-      const response = await fetch("http://localhost:8080/api/book-loans/my", {
+      const response = await fetch(apiUrl("/api/book-loans/my"), {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!response.ok) throw new Error(`Server returned ${response.status}`);
@@ -54,7 +56,7 @@ export default function MyLoansPage() {
       setLoans(data.content || []);
 
       // Fetch User Info to get userId
-      const userRes = await fetch("http://localhost:8080/api/users/profile", {
+      const userRes = await fetch(apiUrl("/api/users/profile"), {
         headers: { "Authorization": `Bearer ${token}` }
       });
       let userId = null;
@@ -65,8 +67,8 @@ export default function MyLoansPage() {
 
       // Fetch Active Subscription for Loan Limit
       const subUrl = userId 
-        ? `http://localhost:8080/api/subscriptions/active?userId=${userId}`
-        : "http://localhost:8080/api/subscriptions/active";
+        ? apiUrl(`/api/subscriptions/active?userId=${userId}`)
+        : apiUrl("/api/subscriptions/active");
       const subRes = await fetch(subUrl, {
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -103,7 +105,7 @@ export default function MyLoansPage() {
 
     setActionLoading(true);
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       const isRenew = modalType === "renew";
 
       const payload = isRenew ? {
@@ -118,7 +120,7 @@ export default function MyLoansPage() {
 
       const endpoint = isRenew ? "renew" : "checkin";
 
-      const response = await fetch(`http://localhost:8080/api/book-loans/${endpoint}`, {
+      const response = await fetch(apiUrl(`/api/book-loans/${endpoint}`), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -128,6 +130,9 @@ export default function MyLoansPage() {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("You are doing that too fast. Please wait a minute.");
+        }
         let errMessage = `Failed: Server returned ${response.status}`;
         try {
           const errData = await response.json();

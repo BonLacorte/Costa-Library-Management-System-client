@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -42,10 +44,10 @@ export default function LoanDetailsPage({ params: paramsPromise }: { params: Pro
     setLoading(true);
     setError("");
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
-      const response = await fetch(`http://localhost:8080/api/book-loans/${id}`, {
+      const response = await fetch(apiUrl(`/api/book-loans/${id}`), {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
@@ -82,7 +84,7 @@ export default function LoanDetailsPage({ params: paramsPromise }: { params: Pro
 
     setActionLoading(true);
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       const isRenew = modalType === "renew";
       
       const payload = isRenew ? {
@@ -97,7 +99,7 @@ export default function LoanDetailsPage({ params: paramsPromise }: { params: Pro
 
       const endpoint = isRenew ? "renew" : "checkin";
 
-      const response = await fetch(`http://localhost:8080/api/book-loans/${endpoint}`, {
+      const response = await fetch(apiUrl(`/api/book-loans/${endpoint}`), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

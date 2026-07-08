@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -53,11 +55,11 @@ export default function AdminEditLoan() {
 
   const fetchLoan = useCallback(async () => {
     setLoading(true);
-    const token = localStorage.getItem("jwt");
+    const token = getAuthToken();
     if (!token) { setError("Auth token not found."); setLoading(false); return; }
 
     try {
-      const res = await fetch(`http://localhost:8080/api/book-loans/${id}`, {
+      const res = await fetch(apiUrl(`/api/book-loans/${id}`), {
         headers: { "Authorization": `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to load loan record.");
@@ -87,7 +89,7 @@ export default function AdminEditLoan() {
     setError("");
     setSuccess("");
 
-    const token = localStorage.getItem("jwt");
+    const token = getAuthToken();
     
     // Prepare payload
     const payload = {
@@ -97,7 +99,7 @@ export default function AdminEditLoan() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/book-loans/${id}`, {
+      const res = await fetch(apiUrl(`/api/book-loans/${id}`), {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json", 

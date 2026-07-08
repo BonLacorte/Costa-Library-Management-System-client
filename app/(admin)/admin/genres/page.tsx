@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -26,14 +28,14 @@ export default function AdminGenres() {
 
   useEffect(() => {
     const fetchGenres = async () => {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) {
         setError("Authentication token not found. Please sign in again.");
         setLoading(false);
         return;
       }
       try {
-        const response = await fetch("http://localhost:8080/api/genres/active/hierarchy", {
+        const response = await fetch(apiUrl("/api/genres/active/hierarchy"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (!response.ok) throw new Error(`Server returned ${response.status}.`);

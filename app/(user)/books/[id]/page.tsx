@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, BookOpen, Hash, Tag, Building2, Calendar, FileText, BookmarkPlus, BookUp, X } from "lucide-react";
@@ -49,8 +51,8 @@ export default function BookDetailsPage({ params: paramsPromise }: { params: Pro
       setLoading(true);
       setError("");
       try {
-        const token = localStorage.getItem("jwt");
-        const response = await fetch(`http://localhost:8080/api/books/${params.id}`, {
+        const token = getAuthToken();
+        const response = await fetch(apiUrl(`/api/books/${params.id}`), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (!response.ok) {
@@ -61,7 +63,7 @@ export default function BookDetailsPage({ params: paramsPromise }: { params: Pro
         setBook(data);
 
         // Fetch user's active loans to see if they already have this book
-        const loansRes = await fetch("http://localhost:8080/api/book-loans/my", {
+        const loansRes = await fetch(apiUrl("/api/book-loans/my"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (loansRes.ok) {
@@ -116,7 +118,7 @@ export default function BookDetailsPage({ params: paramsPromise }: { params: Pro
 
     setActionLoading(true);
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
       let endpoint = "";
@@ -146,7 +148,7 @@ export default function BookDetailsPage({ params: paramsPromise }: { params: Pro
         successMessage = "Reservation created successfully!";
       }
 
-      const response = await fetch(`http://localhost:8080/api/${endpoint}`, {
+      const response = await fetch(apiUrl(`/api/${endpoint}`), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

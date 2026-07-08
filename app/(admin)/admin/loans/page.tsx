@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -98,7 +100,7 @@ export default function AdminLoans() {
   const fetchLoans = useCallback(async () => {
     setLoading(true);
     setError("");
-    const token = localStorage.getItem("jwt");
+    const token = getAuthToken();
     if (!token) { setError("Auth token not found."); setLoading(false); return; }
 
     // Build clean body — omit empty optional fields
@@ -115,7 +117,7 @@ export default function AdminLoans() {
     if (search.endDate) body.endDate = search.endDate;
 
     try {
-      const res = await fetch("http://localhost:8080/api/book-loans/search", {
+      const res = await fetch(apiUrl("/api/book-loans/search"), {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(body),
@@ -140,7 +142,7 @@ export default function AdminLoans() {
   const handleAction = async (action: string, loanId: number) => {
     if (action === "EDIT") return; // Handled by Link
 
-    const token = localStorage.getItem("jwt");
+    const token = getAuthToken();
     if (!token) return;
 
     let status = "";
@@ -153,7 +155,7 @@ export default function AdminLoans() {
     }
 
     try {
-      const res = await fetch(`http://localhost:8080/api/book-loans/${loanId}`, {
+      const res = await fetch(apiUrl(`/api/book-loans/${loanId}`), {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ status }),

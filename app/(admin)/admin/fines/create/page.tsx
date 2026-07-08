@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -32,7 +34,7 @@ export default function AdminCreateFine() {
     setError("");
     setSuccess("");
 
-    const token = localStorage.getItem("jwt");
+    const token = getAuthToken();
     if (!token) {
       setError("Authentication token not found. Please log in again.");
       setLoading(false);
@@ -55,7 +57,7 @@ export default function AdminCreateFine() {
     };
 
     try {
-      const res = await fetch("http://localhost:8080/api/fines", {
+      const res = await fetch(apiUrl("/api/fines"), {
         method: "POST",
         headers: { 
           "Content-Type": "application/json", 

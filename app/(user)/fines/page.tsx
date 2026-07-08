@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,12 +35,12 @@ export default function MyFinesPage() {
     setLoading(true);
     setError("");
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
       // Using the base /my endpoint, assuming it returns all if no query params provided, 
       // or we just fetch and filter client-side to ensure we get all data for stats.
-      const response = await fetch("http://localhost:8080/api/fines/my", {
+      const response = await fetch(apiUrl("/api/fines/my"), {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
@@ -60,10 +62,10 @@ export default function MyFinesPage() {
   const handlePayFine = async (fineId: number) => {
     setPaymentLoading(fineId);
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
-      const response = await fetch(`http://localhost:8080/api/fines/${fineId}/pay`, {
+      const response = await fetch(apiUrl(`/api/fines/${fineId}/pay`), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`

@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,11 +44,11 @@ export default function UserDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const token = localStorage.getItem("jwt");
+        const token = getAuthToken();
         if (!token) return;
 
         // Fetch Loans
-        const loansRes = await fetch("http://localhost:8080/api/book-loans/my?size=100", {
+        const loansRes = await fetch(apiUrl("/api/book-loans/my?size=100"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (loansRes.ok) {
@@ -55,7 +57,7 @@ export default function UserDashboard() {
         }
 
         // Fetch Reservations
-        const resRes = await fetch("http://localhost:8080/api/reservations/my?size=100", {
+        const resRes = await fetch(apiUrl("/api/reservations/my?size=100"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (resRes.ok) {
@@ -64,7 +66,7 @@ export default function UserDashboard() {
         }
 
         // Fetch Fines
-        const finesRes = await fetch("http://localhost:8080/api/fines/my", {
+        const finesRes = await fetch(apiUrl("/api/fines/my"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (finesRes.ok) {

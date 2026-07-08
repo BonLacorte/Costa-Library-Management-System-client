@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,8 +36,8 @@ export default function AdminBooks() {
         if (searchTerm) queryParams.append("searchTerm", searchTerm);
         if (availableOnly) queryParams.append("availableOnly", "true");
 
-        const response = await fetch(`http://localhost:8080/api/books?${queryParams.toString()}`, {
-          headers: { "Authorization": `Bearer ${localStorage.getItem("jwt")}` }
+        const response = await fetch(apiUrl(`/api/books?${queryParams.toString()}`), {
+          headers: { "Authorization": `Bearer ${getAuthToken()}` }
         });
 
         if (!response.ok) throw new Error("Failed to fetch books catalogue from server.");

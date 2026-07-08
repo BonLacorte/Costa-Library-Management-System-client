@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +42,7 @@ export default function AdminReservations() {
   const fetchReservations = useCallback(async () => {
     setLoading(true);
     setError("");
-    const token = localStorage.getItem("jwt");
+    const token = getAuthToken();
     if (!token) {
       setError("Authentication token not found. Please sign in again.");
       setLoading(false);
@@ -48,7 +50,7 @@ export default function AdminReservations() {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/reservations", {
+      const response = await fetch(apiUrl("/api/reservations"), {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!response.ok) throw new Error(`Server returned ${response.status}.`);
@@ -68,8 +70,8 @@ export default function AdminReservations() {
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this reservation?")) return;
     try {
-      const token = localStorage.getItem("jwt");
-      const res = await fetch(`http://localhost:8080/api/reservations/${id}`, {
+      const token = getAuthToken();
+      const res = await fetch(apiUrl(`/api/reservations/${id}`), {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -82,8 +84,8 @@ export default function AdminReservations() {
 
   const handleFulfill = async (id: number) => {
     try {
-      const token = localStorage.getItem("jwt");
-      const res = await fetch(`http://localhost:8080/api/reservations/${id}/fulfill`, {
+      const token = getAuthToken();
+      const res = await fetch(apiUrl(`/api/reservations/${id}/fulfill`), {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -98,8 +100,8 @@ export default function AdminReservations() {
   const updateQueuePosition = async (id: number) => {
     setRefreshingQueue(id);
     try {
-      const token = localStorage.getItem("jwt");
-      const res = await fetch(`http://localhost:8080/api/reservations/${id}/queue-position`, {
+      const token = getAuthToken();
+      const res = await fetch(apiUrl(`/api/reservations/${id}/queue-position`), {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Failed to get queue position");

@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,7 +62,7 @@ export default function AdminFines() {
   const fetchFines = useCallback(async () => {
     setLoading(true);
     setError("");
-    const token = localStorage.getItem("jwt");
+    const token = getAuthToken();
     if (!token) {
       setError("Authentication token not found. Please sign in again.");
       setLoading(false);
@@ -75,7 +77,7 @@ export default function AdminFines() {
       if (search.type) params.append("type", search.type);
       if (search.userId) params.append("userId", search.userId);
 
-      const response = await fetch(`http://localhost:8080/api/fines?${params.toString()}`, {
+      const response = await fetch(apiUrl(`/api/fines?${params.toString()}`), {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!response.ok) throw new Error(`Server returned ${response.status}.`);

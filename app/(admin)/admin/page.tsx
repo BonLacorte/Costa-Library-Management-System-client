@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -29,7 +31,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) {
         setLoading(false);
         return;
@@ -49,22 +51,22 @@ export default function AdminDashboard() {
           subscriptionsRes,
           finesRes,
         ] = await Promise.allSettled([
-          fetch("http://localhost:8080/api/books/stats", { headers }),
-          fetch("http://localhost:8080/api/users/statistics", { headers }),
-          fetch("http://localhost:8080/api/payments/statistics/monthly-revenue", { headers }),
-          fetch("http://localhost:8080/api/reservations?activeOnly=true&size=1", { headers }),
-          fetch("http://localhost:8080/api/book-loans/search", {
+          fetch(apiUrl("/api/books/stats"), { headers }),
+          fetch(apiUrl("/api/users/statistics"), { headers }),
+          fetch(apiUrl("/api/payments/statistics/monthly-revenue"), { headers }),
+          fetch(apiUrl("/api/reservations?activeOnly=true&size=1"), { headers }),
+          fetch(apiUrl("/api/book-loans/search"), {
             method: "POST",
             headers: { ...headers, "Content-Type": "application/json" },
             body: JSON.stringify({ status: "CHECKED_OUT", page: 0, size: 1 }),
           }),
-          fetch("http://localhost:8080/api/book-loans/search", {
+          fetch(apiUrl("/api/book-loans/search"), {
             method: "POST",
             headers: { ...headers, "Content-Type": "application/json" },
             body: JSON.stringify({ status: "OVERDUE", page: 0, size: 1 }),
           }),
-          fetch("http://localhost:8080/api/subscriptions/admin/active", { headers }),
-          fetch("http://localhost:8080/api/fines?status=PENDING&size=1", { headers }),
+          fetch(apiUrl("/api/subscriptions/admin/active"), { headers }),
+          fetch(apiUrl("/api/fines?status=PENDING&size=1"), { headers }),
         ]);
 
         const safeJson = async (result: PromiseSettledResult<Response>) => {

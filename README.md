@@ -1,65 +1,100 @@
-# Costa Library Management System (Costa-LMS) - Client
+# Costa Library Management System Client
 
-A modern, unified library administration and patron portal built with **Next.js 15**, **React 19**, and **Tailwind CSS**. Designed with a "Neo-Academic" aesthetic, this application provides a seamless interface for both library patrons and administrators.
+Frontend for the Costa Library Management System, a full-stack library platform with separate patron and administrator experiences. The client is built with Next.js, React, TypeScript, Tailwind CSS, and a Spring Boot backend.
 
----
+Backend repository: [BonLacorte/Costa-Library-Management-System-server](https://github.com/BonLacorte/Costa-Library-Management-System-server)
 
-## 🚀 Overview
+## Overview
 
-Costa-LMS Client is the frontend component of a full-stack library management solution. It communicates with the **Costa-LMS-Server** (Spring Boot) to provide real-time catalog management, circulation tracking, and automated billing services.
+The app connects to `Costa-LMS-Server` for authentication, catalog browsing, circulation workflows, reservations, fines, payments, subscriptions, and admin reporting. It uses JWT-based authentication stored in browser local storage for this portfolio version.
 
-The project emphasizes a clean, responsive user experience, high-performance data fetching, and robust security through stateless JWT authentication.
+## Features
 
-## ✨ Key Features
+### Patron Portal
 
-### 👤 Patron Portal
-- **Digital Catalog:** Browse books with advanced filtering by genre, author, and availability.
-- **Loan Management:** Track active loans, due dates, and return history.
-- **Queue-Based Reservations:** Place holds on unavailable books with real-time queue position tracking.
-- **Billing & Payments:** Securely pay overdue fines and manage premium subscriptions via **Razorpay**.
+- Browse books by title, author, genre, ISBN, and availability.
+- View active loans, loan details, due dates, and renewal/return actions.
+- Reserve unavailable books and track reservation status.
+- View and pay fines.
+- Browse subscription plans and review subscription history.
 
-### 🔑 Admin Dashboard
-- **Real-Time Analytics:** 8 dynamic KPI widgets fetching data concurrently (Books, Users, Revenue, Active Loans, etc.) using `Promise.allSettled`.
-- **Circulation Control:** Process physical checkouts and returns with instant database updates.
-- **User Management:** Monitor patron activities, subscription statuses, and fine history.
-- **Inventory Management:** Full CRUD operations for books and genres.
+### Admin Dashboard
 
-## 🛠 Tech Stack
+- View operational stats for books, users, revenue, loans, reservations, subscriptions, and fines.
+- Manage books, genres, users, reservations, loans, fines, subscription plans, and active user subscriptions.
+- Use role-protected admin routes that verify the signed-in user profile.
 
-- **Framework:** Next.js 15 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS + Shadcn/UI
-- **Icons:** Lucide React
-- **Authentication:** Stateless JWT (Stored in LocalStorage)
-- **Containerization:** Docker (Multi-stage build with Standalone Output)
+## Tech Stack
 
----
+- Next.js 16 App Router
+- React 19
+- TypeScript
+- Tailwind CSS
+- Base UI, Shadcn-style components, and Lucide React icons
+- Docker multi-stage build with Next.js standalone output
 
-## 🐳 Getting Started
+## Local Setup
 
-The project is fully containerized for easy deployment and evaluation.
+1. Install dependencies:
 
-### Quick Start with Docker
 ```bash
-# Build the image
-docker build -t costa-lms-client .
+npm install
+```
 
-# Run the container
+2. Copy the environment template:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Set the backend origin:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+4. Start the development server:
+
+```bash
+npm run dev
+```
+
+The frontend runs at [http://localhost:3000](http://localhost:3000) by default. The backend should be running separately on the URL configured in `NEXT_PUBLIC_API_URL`.
+
+## Docker
+
+Build with the default local backend URL:
+
+```bash
+docker build -t costa-lms-client .
+```
+
+Build with a deployed backend URL:
+
+```bash
+docker build --build-arg NEXT_PUBLIC_API_URL=https://api.example.com -t costa-lms-client .
+```
+
+Run:
+
+```bash
 docker run -p 3000:3000 costa-lms-client
 ```
 
-For detailed manual setup instructions, environment variable configuration, and backend connectivity, please refer to the [**SETUP_GUIDE.md**](./SETUP_GUIDE.md).
+## Environment Notes
 
----
+`NEXT_PUBLIC_API_URL` is public browser configuration. It should contain only the backend origin, such as `http://localhost:8080`, and must not include private API keys, payment secrets, JWT signing secrets, database passwords, or provider tokens.
 
-## 📄 Documentation
-- [**Architecture Overview**](./architecture_overview-Costa-LMS.md): Detailed system design and diagrams.
-- [**Setup Guide**](./SETUP_GUIDE.md): Step-by-step installation for local development.
-- [**Portfolio Presentation Strategy**](./portfolio_presentation-Costa-LMS.md): Guide on how to showcase this project to recruiters.
+Private secrets belong in the backend, deployment platform secrets, or local-only files that are never committed.
 
----
+## Validation
 
-## 👨‍💻 Developer
-**Florence Bon Lacorte**
-- GitHub: [@BonLacorte](https://github.com/BonLacorte)
-- Project: Costa-LMS
+```bash
+npm run lint
+npm run build
+```
+
+## Developer
+
+Florence Bon Lacorte
+GitHub: [@BonLacorte](https://github.com/BonLacorte)

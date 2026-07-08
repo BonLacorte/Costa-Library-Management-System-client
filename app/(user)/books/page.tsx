@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Search, User, XCircle, CheckCircle2, ChevronLeft, ChevronRight, Loader2, BookOpen } from "lucide-react";
@@ -56,10 +58,10 @@ export default function UserBrowseBooks() {
       params.append("size", size.toString());
       if (searchTerm) params.append("searchTerm", searchTerm);
       if (selectedGenreId !== "all") params.append("genreId", selectedGenreId.toString());
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
-      const response = await fetch(`http://localhost:8080/api/books?${params.toString()}`, {
+      const response = await fetch(apiUrl(`/api/books?${params.toString()}`), {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!response.ok) throw new Error(`Server returned ${response.status}.`);
@@ -76,8 +78,8 @@ export default function UserBrowseBooks() {
 
   const fetchGenres = async () => {
     try {
-      const token = localStorage.getItem("jwt");
-      const response = await fetch("http://localhost:8080/api/genres/active", {
+      const token = getAuthToken();
+      const response = await fetch(apiUrl("/api/genres/active"), {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!response.ok) return;
@@ -102,8 +104,8 @@ export default function UserBrowseBooks() {
     setIsbnSearching(true);
     setError("");
     try {
-      const token = localStorage.getItem("jwt");
-      const response = await fetch(`http://localhost:8080/api/books/isbn/${isbnSearch.trim()}`, {
+      const token = getAuthToken();
+      const response = await fetch(apiUrl(`/api/books/isbn/${isbnSearch.trim()}`), {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (response.status === 404) {

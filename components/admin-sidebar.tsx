@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BookMarked, UserCircle, LayoutDashboard, Library, Receipt, Settings, LogOut, ArrowLeftRight, Shapes, Bookmark, Users, Crown, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { clearAuthSession } from "@/lib/auth";
 
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -22,8 +23,7 @@ export function AdminSidebar() {
   const router = useRouter();
 
   const handleLogout = () => {
-    localStorage.removeItem("jwt");
-    localStorage.removeItem("user");
+    clearAuthSession();
     router.push("/admin-sign-in");
   };
 

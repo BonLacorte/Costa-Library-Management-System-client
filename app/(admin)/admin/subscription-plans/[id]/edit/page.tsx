@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,9 +24,9 @@ export default function UpdateSubscriptionPlan({ params: paramsPromise }: { para
   useEffect(() => {
     const fetchPlanData = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/subscription-plans/${params.id}`, {
+        const response = await fetch(apiUrl(`/api/subscription-plans/${params.id}`), {
           headers: {
-            "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+            "Authorization": `Bearer ${getAuthToken()}`
           }
         });
         if (response.ok) {
@@ -57,11 +59,11 @@ export default function UpdateSubscriptionPlan({ params: paramsPromise }: { para
     setLoading(true);
     setSuccess(false);
     try {
-      const response = await fetch(`http://localhost:8080/api/subscription-plans/admin/${params.id}`, {
+      const response = await fetch(apiUrl(`/api/subscription-plans/admin/${params.id}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+          "Authorization": `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify(formData),
       });
@@ -79,10 +81,10 @@ export default function UpdateSubscriptionPlan({ params: paramsPromise }: { para
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to deactivate this plan? This action cannot be undone.")) return;
     try {
-      const response = await fetch(`http://localhost:8080/api/subscription-plans/admin/${params.id}`, {
+      const response = await fetch(apiUrl(`/api/subscription-plans/admin/${params.id}`), {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+          "Authorization": `Bearer ${getAuthToken()}`
         }
       });
       if (response.ok) {

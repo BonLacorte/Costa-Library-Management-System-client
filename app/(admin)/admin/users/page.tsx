@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { Loader2, Users, Mail, Shield, Calendar, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -24,12 +26,12 @@ export default function AdminUsersList() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem("jwt");
+        const token = getAuthToken();
         if (!token) {
           throw new Error("Authentication required.");
         }
 
-        const response = await fetch("http://localhost:8080/api/users/admin/list", {
+        const response = await fetch(apiUrl("/api/users/admin/list"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
 

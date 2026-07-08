@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,16 +23,16 @@ export default function AddBook() {
     setSuccess(false);
 
     try {
-      const response = await fetch("http://localhost:8080/api/books/admin/create", {
+      const response = await fetch(apiUrl("/api/books/admin/create"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+          "Authorization": `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify(formData),
       });
 
-      if (response.created || response.status === 201) {
+      if (response.ok || response.status === 201) {
         setSuccess(true);
         setFormData({
           isbn: "", title: "", author: "", genreId: 0, publisher: "", publicationDate: "",

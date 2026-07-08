@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Info, AlertCircle } from "lucide-react";
+import { apiUrl } from "@/lib/api";
+import { storeAuthSession } from "@/lib/auth";
 
 export default function SignUp() {
   const router = useRouter();
@@ -25,7 +27,7 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/auth/signup", {
+      const response = await fetch(apiUrl("/auth/signup"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -36,11 +38,14 @@ export default function SignUp() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("You are doing that too fast. Please wait a minute.");
+        }
         throw new Error(data.message || "Something went wrong during sign up.");
       }
 
       if (data.jwt) {
-        localStorage.setItem("jwt", data.jwt);
+        storeAuthSession(data.jwt, data.user);
         router.push("/sign-in");
       }
     } catch (err: any) {

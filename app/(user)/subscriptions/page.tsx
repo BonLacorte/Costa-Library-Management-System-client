@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -32,11 +34,11 @@ export default function SubscriptionsPage() {
       setLoading(true);
       setError("");
       try {
-        const token = localStorage.getItem("jwt");
+        const token = getAuthToken();
         if (!token) throw new Error("Please log in first.");
 
         // 1. Fetch all active plans
-        const plansRes = await fetch("http://localhost:8080/api/subscription-plans/active", {
+        const plansRes = await fetch(apiUrl("/api/subscription-plans/active"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (!plansRes.ok) throw new Error("Failed to fetch subscription plans");
@@ -44,7 +46,7 @@ export default function SubscriptionsPage() {
         setPlans(plansData);
 
         // Fetch User Info to get userId
-        const userRes = await fetch("http://localhost:8080/api/users/profile", {
+        const userRes = await fetch(apiUrl("/api/users/profile"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         let userId = null;
@@ -55,8 +57,8 @@ export default function SubscriptionsPage() {
 
         // 2. Fetch user's active subscription
         const subUrl = userId
-          ? `http://localhost:8080/api/subscriptions/active?userId=${userId}`
-          : "http://localhost:8080/api/subscriptions/active";
+          ? apiUrl(`/api/subscriptions/active?userId=${userId}`)
+          : apiUrl("/api/subscriptions/active");
         const activeSubRes = await fetch(subUrl, {
           headers: { "Authorization": `Bearer ${token}` }
         });

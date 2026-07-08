@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,7 +25,7 @@ export default function Profile() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) {
         setError("Authentication token not found. Please sign in again.");
         setLoading(false);
@@ -31,7 +33,7 @@ export default function Profile() {
       }
 
       try {
-        const response = await fetch("http://localhost:8080/api/users/profile", {
+        const response = await fetch(apiUrl("/api/users/profile"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
 
@@ -61,11 +63,11 @@ export default function Profile() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8080/api/users/profile", {
+      const response = await fetch(apiUrl("/api/users/profile"), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+          "Authorization": `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify(formData)
       });

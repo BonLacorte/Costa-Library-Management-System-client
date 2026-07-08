@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +33,7 @@ export default function AdminUserSubscriptions() {
   const fetchSubscriptions = useCallback(async () => {
     setLoading(true);
     setError("");
-    const token = localStorage.getItem("jwt");
+    const token = getAuthToken();
     if (!token) {
       setError("Authentication token not found. Please sign in again.");
       setLoading(false);
@@ -39,7 +41,7 @@ export default function AdminUserSubscriptions() {
     }
     try {
       const response = await fetch(
-        `http://localhost:8080/api/subscriptions/admin/active?page=${page}&size=20`,
+        apiUrl(`/api/subscriptions/admin/active?page=${page}&size=20`),
         { headers: { "Authorization": `Bearer ${token}` } }
       );
       if (!response.ok) throw new Error(`Server returned ${response.status}.`);
@@ -62,10 +64,10 @@ export default function AdminUserSubscriptions() {
     setTriggerMsg("");
     try {
       const response = await fetch(
-        "http://localhost:8080/api/subscriptions/admin/deactivate-expired",
+        apiUrl("/api/subscriptions/admin/deactivate-expired"),
         {
           method: "POST",
-          headers: { "Authorization": `Bearer ${localStorage.getItem("jwt")}` }
+          headers: { "Authorization": `Bearer ${getAuthToken()}` }
         }
       );
       if (response.ok) {
@@ -85,10 +87,10 @@ export default function AdminUserSubscriptions() {
     try {
       // Simulate payment ID with 999 for manual admin activation
       const response = await fetch(
-        `http://localhost:8080/api/subscriptions/activate?subscriptionId=${id}&paymentId=999`,
+        apiUrl(`/api/subscriptions/activate?subscriptionId=${id}&paymentId=999`),
         {
           method: "POST",
-          headers: { "Authorization": `Bearer ${localStorage.getItem("jwt")}` }
+          headers: { "Authorization": `Bearer ${getAuthToken()}` }
         }
       );
       if (!response.ok) throw new Error("Failed to activate subscription.");
@@ -102,10 +104,10 @@ export default function AdminUserSubscriptions() {
   const handleCancel = async (id: number) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/api/subscriptions/cancel/${id}?reason=Admin%20Cancelled`,
+        apiUrl(`/api/subscriptions/cancel/${id}?reason=Admin%20Cancelled`),
         {
           method: "POST",
-          headers: { "Authorization": `Bearer ${localStorage.getItem("jwt")}` }
+          headers: { "Authorization": `Bearer ${getAuthToken()}` }
         }
       );
       if (!response.ok) throw new Error("Failed to cancel subscription.");

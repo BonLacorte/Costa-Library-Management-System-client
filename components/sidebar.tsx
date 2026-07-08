@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BookMarked, UserCircle, LayoutDashboard, Library, BookLock, Receipt, Bookmark, Crown, Heart, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { clearAuthSession } from "@/lib/auth";
 
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -20,8 +21,7 @@ export function Sidebar() {
   const router = useRouter();
 
   const handleLogout = () => {
-    localStorage.removeItem("jwt");
-    localStorage.removeItem("user");
+    clearAuthSession();
     router.push("/sign-in");
   };
 

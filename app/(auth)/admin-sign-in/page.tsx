@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
+import { apiUrl } from "@/lib/api";
+import { clearAuthSession, storeAuthSession } from "@/lib/auth";
 
 export default function AdminSignIn() {
   const router = useRouter();
@@ -19,7 +21,7 @@ export default function AdminSignIn() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/auth/login", {
+      const response = await fetch(apiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -32,11 +34,10 @@ export default function AdminSignIn() {
       }
 
       if (data.user?.role === "ROLE_ADMIN") {
-        localStorage.setItem("jwt", data.jwt);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        storeAuthSession(data.jwt, data.user);
         router.push("/admin");
       } else {
-        localStorage.clear();
+        clearAuthSession();
         throw new Error("Unauthorized. Admin access required.");
       }
     } catch (err: any) {

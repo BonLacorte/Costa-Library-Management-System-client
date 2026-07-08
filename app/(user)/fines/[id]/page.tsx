@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -36,10 +38,10 @@ export default function FineDetailsPage({ params: paramsPromise }: { params: Pro
     setLoading(true);
     setError("");
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
-      const response = await fetch(`http://localhost:8080/api/fines/${id}`, {
+      const response = await fetch(apiUrl(`/api/fines/${id}`), {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
@@ -67,10 +69,10 @@ export default function FineDetailsPage({ params: paramsPromise }: { params: Pro
     if (!fine) return;
     setPaymentLoading(true);
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Please log in first.");
 
-      const response = await fetch(`http://localhost:8080/api/fines/${fine.id}/pay`, {
+      const response = await fetch(apiUrl(`/api/fines/${fine.id}/pay`), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`

@@ -1,5 +1,7 @@
 "use client";
 
+import { getAuthToken } from "@/lib/auth";
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -23,11 +25,11 @@ export default function AdminAddReservation() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("jwt");
+        const token = getAuthToken();
         if (!token) return;
 
         // Fetch Users
-        const usersRes = await fetch("http://localhost:8080/api/users/admin/list", {
+        const usersRes = await fetch(apiUrl("/api/users/admin/list"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (usersRes.ok) {
@@ -36,7 +38,7 @@ export default function AdminAddReservation() {
         }
 
         // Fetch Books (using a large size to get all for the dropdown)
-        const booksRes = await fetch("http://localhost:8080/api/books?page=0&size=1000", {
+        const booksRes = await fetch(apiUrl("/api/books?page=0&size=1000"), {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (booksRes.ok) {
@@ -63,10 +65,10 @@ export default function AdminAddReservation() {
     setError("");
 
     try {
-      const token = localStorage.getItem("jwt");
+      const token = getAuthToken();
       if (!token) throw new Error("Authentication token not found.");
 
-      const response = await fetch(`http://localhost:8080/api/reservations/admin/user/${userId}`, {
+      const response = await fetch(apiUrl(`/api/reservations/admin/user/${userId}`), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
